@@ -1,0 +1,49 @@
+<!-- templates/search_friends.html -->
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2>Search Friends</h2>
+  <form method="POST" action="{{ url_for('search_friends') }}">
+    <div class="input-group mb-3">
+      <input type="text" name="query" class="form-control" placeholder="Search by name or email" required>
+      <button class="btn btn-primary" type="submit">Search</button>
+    </div>
+  </form>
+
+  {% if users %}
+    <h4>Search Results</h4>
+    <ul class="list-group">
+      {% for user in users %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ user.first_name }} {{ user.last_name }} ({{ user.email }})
+          {% if user.id not in friends and user.id not in pending_requests %}
+            <a href="{{ url_for('send_friend_request', user_id=user.id) }}" class="btn btn-sm btn-outline-success">Add Friend</a>
+          {% elif user.id in pending_requests %}
+            <span class="text-muted">Request Sent</span>
+          {% else %}
+            <span class="text-success">Already Friends</span>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <hr>
+  <h4>Incoming Friend Requests</h4>
+  {% if friend_requests %}
+    <ul class="list-group">
+      {% for req in friend_requests %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ req.from_user.first_name }} {{ req.from_user.last_name }}
+          <div>
+            <a href="{{ url_for('accept_friend_request', request_id=req.id) }}" class="btn btn-sm btn-success">Accept</a>
+            <a href="{{ url_for('reject_friend_request', request_id=req.id) }}" class="btn btn-sm btn-danger">Reject</a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No pending friend requests.</p>
+  {% endif %}
+</div>
+{% endblock %}

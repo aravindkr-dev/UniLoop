@@ -2,6 +2,8 @@ from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from datetime import datetime
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -36,6 +38,30 @@ class Project(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     creator = db.relationship('User', backref='created_projects', foreign_keys=[created_by])
     members = db.relationship('User', secondary=project_participants, backref='projects')
+
+
+
+class FriendRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    from_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    to_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    status = db.Column(db.String(10), default='pending')  # 'pending', 'accepted', 'rejected'
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    from_user = db.relationship('User', foreign_keys=[from_user_id])
+    to_user = db.relationship('User', foreign_keys=[to_user_id])
+
+
+class Friendship(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user1_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user2_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user1 = db.relationship('User', foreign_keys=[user1_id])
+    user2 = db.relationship('User', foreign_keys=[user2_id])
+
+
 
 # User loader
 @login_manager.user_loader
@@ -153,6 +179,102 @@ def leave_project(project_id):
         db.session.commit()
         flash('You left the project.', 'warning')
     return redirect(url_for('project_detail', project_id=project_id))
+
+@app.route('/friends')
+@login_required
+def friends():
+    # Fetch friendships where current_user is either user1 or user2
+    friendships = Friendship.query.filter(
+        (Friendship.user1_id == current_user.id) | (Friendship.user2_id == current_user.id)
+    ).all()
+
+    friends_list = []
+
+    for friendship in friendships:
+        if friendship.user1_id == current_user.id:
+            friends_list.append(friendship.user2)
+        else:
+            friends_list.append(friendship.user1)
+
+    # Debugging: Print the friends' names
+    for friend1 in friends_list:
+        print(friend1.first_name)  # This should print the names of the friends
+
+    return render_template('list_friends.html', friends=friends_list)
+
+
+
+@app.route('/friend/search', methods=['GET', 'POST'])
+@login_required
+def search_friends():
+    users = []
+    query = ''
+    if request.method == 'POST':
+        query = request.form['query']
+        users = User.query.filter(
+            (User.first_name.ilike(f'%{query}%')) |
+            (User.last_name.ilike(f'%{query}%')) |
+            (User.email.ilike(f'%{query}%'))
+        ).filter(User.id != current_user.id).all()
+
+    # Fetch existing friends
+    friend_ids = {f.user2_id for f in Friendship.query.filter_by(user1_id=current_user.id)}
+    friend_ids |= {f.user1_id for f in Friendship.query.filter_by(user2_id=current_user.id)}
+
+    # Pending requests
+    pending_ids = {req.to_user_id for req in FriendRequest.query.filter_by(from_user_id=current_user.id, status='pending')}
+
+    # Incoming requests
+    friend_requests = FriendRequest.query.filter_by(to_user_id=current_user.id, status='pending').all()
+
+    return render_template(
+        'search_friends.html',
+        users=users,
+        friends=friend_ids,
+        pending_requests=pending_ids,
+        friend_requests=friend_requests
+    )
+
+@app.route('/friend/request/<int:user_id>')
+@login_required
+def send_friend_request(user_id):
+    # Prevent duplicates
+    existing = FriendRequest.query.filter_by(from_user_id=current_user.id, to_user_id=user_id).first()
+    already_friends = Friendship.query.filter(
+        ((Friendship.user1_id == current_user.id) & (Friendship.user2_id == user_id)) |
+        ((Friendship.user2_id == current_user.id) & (Friendship.user1_id == user_id))
+    ).first()
+    if not existing and not already_friends:
+        req = FriendRequest(from_user_id=current_user.id, to_user_id=user_id)
+        db.session.add(req)
+        db.session.commit()
+        flash('Friend request sent!', 'success')
+    else:
+        flash('Friend request already sent or already friends.', 'warning')
+    return redirect(url_for('search_friends'))
+
+@app.route('/friend/accept/<int:request_id>')
+@login_required
+def accept_friend_request(request_id):
+    req = FriendRequest.query.get_or_404(request_id)
+    if req.to_user_id == current_user.id and req.status == 'pending':
+        req.status = 'accepted'
+        friendship = Friendship(user1_id=req.from_user_id, user2_id=req.to_user_id)
+        db.session.add(friendship)
+        db.session.commit()
+        flash('Friend request accepted.', 'success')
+    return redirect(url_for('search_friends'))
+
+@app.route('/friend/reject/<int:request_id>')
+@login_required
+def reject_friend_request(request_id):
+    req = FriendRequest.query.get_or_404(request_id)
+    if req.to_user_id == current_user.id and req.status == 'pending':
+        req.status = 'rejected'
+        db.session.commit()
+        flash('Friend request rejected.', 'danger')
+    return redirect(url_for('search_friends'))
+
 
 # Run
 if __name__ == '__main__':
