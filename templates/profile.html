@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="mb-4">Your Profile</h2>
+
+<!-- Check if user has a profile picture, else use a default image -->
+<img src="{{ url_for('static', filename=user.profile_picture if user.profile_picture else 'default.jpg') }}" 
+     class="rounded-circle mx-auto d-block" 
+     style="width: 150px; height: 150px; object-fit: cover;" 
+     alt="Profile Picture">
+
+<form method="POST" action="{{ url_for('profile') }}">
+    <div class="mb-3">
+        <label for="first_name" class="form-label">First Name</label>
+        <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="last_name" class="form-label">Last Name</label>
+        <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="bio" class="form-label">Bio</label>
+        <textarea class="form-control" id="bio" name="bio" rows="3">{{ user.bio }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label for="profile_picture" class="form-label">Profile Picture URL</label>
+        <input type="text" class="form-control" id="profile_picture" name="profile_picture" value="{{ user.profile_picture }}">
+    </div>
+    <button type="submit" class="btn btn-primary">Update Profile</button>
+</form>
+
+{% if user_projects %}
+    <hr>
+    <h4 class="mt-4">Your Projects</h4>
+    <ul class="list-group mt-2">
+        {% for project in user_projects %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <a href="{{ url_for('project_detail', project_id=project.id) }}">{{ project.name }}</a>
+                <span class="text-muted">{{ project.description[:50] }}...</span>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+{% endblock %}
