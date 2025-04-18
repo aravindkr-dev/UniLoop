@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Project</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-6">
+        <h1 class="text-3xl font-bold mb-6">✏️ Edit Project</h1>
+
+        <!-- Project Update Form -->
+        <form method="POST" class="bg-white shadow-md rounded-lg p-6 space-y-4">
+            <input name="title" value="{{ project.title }}" required class="w-full p-3 border rounded-md" />
+            <textarea name="description" rows="4" required class="w-full p-3 border rounded-md">{{ project.description }}</textarea>
+            <input name="github_url" value="{{ project.github_url }}" class="w-full p-3 border rounded-md" />
+            <select name="visibility" class="w-full p-3 border rounded-md">
+                <option value="public" {% if project.visibility == 'public' %}selected{% endif %}>Public</option>
+                <option value="private" {% if project.visibility == 'private' %}selected{% endif %}>Private</option>
+            </select>
+
+            <button type="submit" class="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700">
+                Save Changes
+            </button>
+        </form>
+
+        <!-- Add Members Section -->
+        <div class="mt-8">
+            <h2 class="text-2xl font-semibold mb-4">👥 Add Members</h2>
+
+            <form method="POST" action="{{ url_for('add_member') }}" class="flex flex-col md:flex-row gap-4">
+                <select name="user_id" required class="w-full p-2 border rounded">
+                    <option value="">-- Select a Friend --</option>
+                    {% if friends_list %}
+                        {% for friend in friends_list %}
+                            <option value="{{ friend.id }}">{{ friend.first_name }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+
+                <input type="text" name="role" required placeholder="Role (e.g. Developer)" class="p-2 border rounded w-full md:w-1/3" />
+                <input type="hidden" name="project_id" value="{{ project.id }}">
+
+                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                    ➕ Add Member
+                </button>
+            </form>
+        </div>
+
+        <!-- Current Members Section -->
+        <div class="mt-6">
+            <h3 class="text-lg font-bold mb-2">Current Members</h3>
+            <ul class="bg-white p-4 rounded shadow space-y-2">
+                {% for member in project.team_members %}
+                    <li class="flex justify-between items-center border-b pb-2">
+                        <span>{{ member.first_name }}</span>
+                        <span class="text-sm text-gray-500">{{ member.role if member.role else 'Member' }}</span>
+                    </li>
+                {% else %}
+                    <li>No members yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    
+</body>
+</html>

@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Settings Navigation Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Settings</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="#account" class="list-group-item list-group-item-action active" data-bs-toggle="list">
+                        <i class="fas fa-user-circle me-2"></i>Account
+                    </a>
+                    <a href="#profile" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                        <i class="fas fa-id-card me-2"></i>Profile
+                    </a>
+                    <a href="#security" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                        <i class="fas fa-lock me-2"></i>Security
+                    </a>
+                    <a href="#notifications" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                        <i class="fas fa-bell me-2"></i>Notifications
+                    </a>
+                    <a href="#privacy" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                        <i class="fas fa-shield-alt me-2"></i>Privacy
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Settings Content -->
+        <div class="col-md-9">
+            <div class="tab-content">
+                <!-- Account Settings -->
+                <div class="tab-pane fade show active" id="account">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Account Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="{{ url_for('settings') }}" method="POST">
+                                <input type="hidden" name="form_type" value="account_info">
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="first_name" class="form-label">First Name</label>
+                                        <input type="text" class="form-control" id="first_name" name="first_name" value="{{ current_user.first_name }}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="last_name" class="form-label">Last Name</label>
+                                        <input type="text" class="form-control" id="last_name" name="last_name" value="{{ current_user.last_name }}" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" required>
+                                    <div class="form-text">We'll never share your email with anyone else.</div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Profile Settings -->
+                <div class="tab-pane fade" id="profile">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Profile Picture</h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="{{ url_for('settings') }}" method="POST" enctype="multipart/form-data">
+                                <input type="hidden" name="form_type" value="profile_picture">
+                                
+                                <div class="row align-items-center">
+                                    <div class="col-md-3 text-center">
+                                        {% if current_user.profile_picture %}
+                                        <img src="{{ url_for('static', filename='uploads/' + current_user.profile_picture) }}" alt="Profile Picture" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
+                                        {% else %}
+                                        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white mx-auto" style="width: 150px; height: 150px; font-size: 3rem;">
+                                            {{ current_user.first_name[0] }}{{ current_user.last_name[0] }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="mb-3">
+                                            <label for="profile_picture" class="form-label">Upload new picture</label>
+                                            <input class="form-control" type="file" id="profile_picture" name="profile_picture" accept="image/*">
+                                            <div class="form-text">Maximum size: 5MB. Recommended: square image (1:1 ratio).</div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Upload Picture</button>
+                                        {% if current_user.profile_picture %}
+                                        <button type="submit" name="remove_picture" value="true" class="btn btn-outline-danger">Remove Picture</button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Profile Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="{{ url_for('settings') }}" method="POST">
+                                <input type="hidden" name="form_type" value="profile_info">
+                                
+                                <div class="mb-3">
+                                    <label for="bio" class="form-label">Bio</label>
+                                    <textarea class="form-control" id="bio" name="bio" rows="4">{{ current_user.bio or '' }}</textarea>
+                                    <div class="form-text">Tell others about yourself (max 500 characters).</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="college" class="form-label">College/University</label>
+                                    <input type="text" class="form-control" id="college" name="college" value="{{ current_user.college or '' }}">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="skills" class="form-label">Skills</label>
+                                    <input type="text" class="form-control" id="skills" name="skills" value="{{ current_user.skills or '' }}">
+                                    <div class="form-text">Separate skills with commas (e.g., Python, JavaScript, UI Design)</div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="github" class="form-label">GitHub URL</label>
+                                        <input type="url" class="form-control" id="github" name="github" value="{{ current_user.github or '' }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="linkedin" class="form-label">LinkedIn URL</label>
+                                        <input type="url" class="form-control" id="linkedin" name="linkedin" value="{{ current_user.linkedin or '' }}">
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Security Settings -->
+                <div class="tab-pane fade" id="security">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Change Password</h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="{{ url_for('settings') }}" method="POST">
+                                <input type="hidden" name="form_type" value="change_password">
+                                
+                                <div class="mb-3">
+                                    <label for="current_password" class="form-label">Current Password</label>
+                                    <input type="password" class="form-control" id="current_password" name="current_password" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label">New Password</label>
+                                    <input type="password" class="form-control" id="new_password" name="new_password" required>
+                                    <div class="form-text">Password must be at least 8 characters long.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">Confirm New Password</label>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Change Password</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notification Settings -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Notification Preferences</h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="{{ url_for('settings') }}" method="POST">
+                                <input type="hidden" name="form_type" value="notification_settings">
+                                
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="friend_requests" name="notifications[]" value="friend_requests" checked>
+                                        <label class="form-check-label" for="friend_requests">Friend Requests</label>
+                                    </div>
+                                    <div class="form-text">Receive notifications when someone sends you a friend request.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="project_invites" name="notifications[]" value="project_invites" checked>
+                                        <label class="form-check-label" for="project_invites">Project Invitations</label>
+                                    </div>
+                                    <div class="form-text">Receive notifications when you're invited to join a project.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="project_updates" name="notifications[]" value="project_updates" checked>
+                                        <label class="form-check-label" for="project_updates">Project Updates</label>
+                                    </div>
+                                    <div class="form-text">Receive notifications about updates to projects you're part of.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="messages" name="notifications[]" value="messages" checked>
+                                        <label class="form-check-label" for="messages">Messages</label>
+                                    </div>
+                                    <div class="form-text">Receive notifications when someone sends you a message.</div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Save Preferences</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Privacy Settings -->
+                <div class="tab-pane fade" id="privacy">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Privacy Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="{{ url_for('settings') }}" method="POST">
+                                <input type="hidden" name="form_type" value="privacy_settings">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Profile Visibility</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="profile_visibility" id="public" value="public" checked>
+                                        <label class="form-check-label" for="public">
+                                            Public - Anyone can view your profile
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="profile_visibility" id="friends" value="friends">
+                                        <label class="form-check-label" for="friends">
+                                            Friends Only - Only your friends can view your profile
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="profile_visibility" id="private" value="private">
+                                        <label class="form-check-label" for="private">
+                                            Private - Only you can view your profile
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Friend Request Settings</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="friend_request_setting" id="everyone" value="everyone" checked>
+                                        <label class="form-check-label" for="everyone">
+                                            Everyone can send me friend requests
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="friend_request_setting" id="friends_of_friends" value="friends_of_friends">
+                                        <label class="form-check-label" for="friends_of_friends">
+                                            Only friends of friends can send me requests
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Save Privacy Settings</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript to maintain active tab after form submission -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get hash from URL or session storage
+        let activeTab = window.location.hash || sessionStorage.getItem('activeSettingsTab') || '#account';
+        
+        // Activate the tab
+        const tabToActivate = document.querySelector('a[href="' + activeTab + '"]');
+        if (tabToActivate) {
+            const tab = new bootstrap.Tab(tabToActivate);
+            tab.show();
+        }
+        
+        // Store the active tab when changed
+        const tabLinks = document.querySelectorAll('.list-group-item-action');
+        tabLinks.forEach(function(tabLink) {
+            tabLink.addEventListener('click', function(e) {
+                sessionStorage.setItem('activeSettingsTab', this.getAttribute('href'));
+            });
+        });
+    });
+</script>
+{% endblock %}

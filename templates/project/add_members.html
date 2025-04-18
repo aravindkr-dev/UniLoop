@@ -1,0 +1,18 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add members</title>
+</head>
+<body>
+    <div>
+        {%if friends%}
+            {%for friend in friends%}
+                <h2>{{friend.first_name}}</h2>
+                Role<input type="text" name = 'role'>
+                <a href="/project/add_member/"></a>
+            {%endfor%}
+        {%endif%}
+    </div>
+</body>
+</html>

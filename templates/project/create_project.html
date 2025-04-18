@@ -1,0 +1,28 @@
+<!-- templates/project/create_project.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Project</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-6">
+        <h1 class="text-3xl font-bold mb-6">➕ Create New Project</h1>
+
+        <form method="POST" action="{{ url_for('create_project') }}" class="bg-white shadow-md rounded-lg p-6 space-y-4">
+            <input name="title" required placeholder="Project Title" class="w-full p-3 border rounded-md" />
+            <textarea name="description" required placeholder="Description" rows="4" class="w-full p-3 border rounded-md"></textarea>
+            <input name="github_url" placeholder="GitHub URL (optional)" class="w-full p-3 border rounded-md" />
+            <select name="visibility" class="w-full p-3 border rounded-md">
+                <option value="public">Public</option>
+                <option value="private">Private</option>
+            </select>
+
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                Create Project
+            </button>
+        </form>
+    </div>
+</body>
+</html>

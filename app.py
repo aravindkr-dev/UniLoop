@@ -1,8 +1,13 @@
-from flask import Flask, render_template, redirect, url_for, request, flash
+from flask import Flask, abort, render_template, redirect, url_for, request, flash
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import insert
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from datetime import datetime
+from flask import render_template, request, redirect, url_for, flash
+from werkzeug.utils import secure_filename
+import os
+from flask_migrate import Migrate
 
 
 app = Flask(__name__)
@@ -11,10 +16,13 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///collegehub.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)  
 bcrypt = Bcrypt(app)
+# Update this line in your app configuration
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
-
+login_manager.login_message = 'Please log in to access this page.'
+login_manager.login_message_category = 'info'
 # Association table
 project_participants = db.Table('project_participants',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
@@ -30,15 +38,62 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(255), nullable=False)
     profile_picture = db.Column(db.String(255))
     bio = db.Column(db.String(500))
+    
+    # Additional profile fields
+    college = db.Column(db.String(200))
+    skills = db.Column(db.String(500))
+    github = db.Column(db.String(255))
+    linkedin = db.Column(db.String(255))
+    
+    # Privacy and notification settings could be added here or in separate models
+    profile_visibility = db.Column(db.String(20), default='public')
+    friend_request_setting = db.Column(db.String(20), default='everyone')
+    
+    # Relationships
+    owned_projects = db.relationship('Project', back_populates='owner')
+    joined_projects = db.relationship('Project', secondary='project_members', back_populates='team_members')
 
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(150), nullable=False)
-    description = db.Column(db.String(500), nullable=False)
-    created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    creator = db.relationship('User', backref='created_projects', foreign_keys=[created_by])
-    members = db.relationship('User', secondary=project_participants, backref='projects')
+    title = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    tags = db.Column(db.String(255))
+    github_url = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    visibility = db.Column(db.String(20), default='public')
+    likes = db.Column(db.Integer, default=0)
 
+    # Relationships
+    owner = db.relationship('User', back_populates='owned_projects')
+    team_members = db.relationship('User', secondary='project_members', back_populates='joined_projects')
+
+
+
+
+
+
+project_members = db.Table('project_members',
+    db.Column('project_id', db.Integer, db.ForeignKey('project.id')),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('role', db.String(50)),
+    db.Column('joined_at', db.DateTime, default=datetime.utcnow)
+)
+
+team_members = db.relationship(
+    'User',
+    secondary=project_members,
+    backref='joined_projects'
+)
+
+
+class Messages():
+    id = db.Column(db.Integer , primary_key = True)
+    from_user = db.Column(db.String(300) , nullable = False)
+    to_user = db.Column(db.String(300) , nullable = False)
+    msg = db.Column(db.String(5000) , nullable = False)
+    view = db.Column(db.String(50))
 
 
 class FriendRequest(db.Model):
@@ -62,16 +117,66 @@ class Friendship(db.Model):
     user2 = db.relationship('User', foreign_keys=[user2_id])
 
 
+# Update your login route to handle redirects properly
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    # If user is already authenticated, redirect to dashboard
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+        
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        user = User.query.filter_by(email=email).first()
+
+        if user and bcrypt.check_password_hash(user.password, password):
+            login_user(user)
+            # Redirect to the page user was trying to access, or dashboard
+            next_page = request.args.get('next')
+            return redirect(next_page or url_for('dashboard'))
+        flash('Invalid email or password.', 'danger')
+    return render_template('login.html')
 
 # User loader
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    user = db.session.get(User, user_id)
+    return user
 
 # Routes
 @app.route('/')
-def home():
-    return redirect(url_for('login'))
+@login_required
+def dashboard():
+    # Get owned projects
+    owned_projects = Project.query.filter_by(owner_id=current_user.id).all()
+    
+    # Get projects where user is a team member
+    joined_projects = current_user.joined_projects
+    
+    # Get friendships
+    friendships = Friendship.query.filter(
+        (Friendship.user1_id == current_user.id) | (Friendship.user2_id == current_user.id)
+    ).all()
+    
+    # Create friends list
+    friends_list = []
+    for friendship in friendships:
+        if friendship.user1_id == current_user.id:
+            friends_list.append(friendship.user2)
+        else:
+            friends_list.append(friendship.user1)
+    
+    # Get pending friend requests
+    friend_requests = FriendRequest.query.filter_by(to_user_id=current_user.id, status='pending').all()
+    
+    return render_template(
+        'dashboard.html',
+        owned_projects=owned_projects,
+        joined_projects=joined_projects,
+        friendships=friendships,
+        friends_list=friends_list,
+        friend_requests=friend_requests
+    )
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -99,18 +204,6 @@ def signup():
         return redirect(url_for('login'))
     return render_template('signup.html')
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        user = User.query.filter_by(email=email).first()
-
-        if user and bcrypt.check_password_hash(user.password, password):
-            login_user(user)
-            return redirect(url_for('profile'))
-        flash('Invalid email or password.', 'danger')
-    return render_template('login.html')
 
 @app.route('/logout')
 @login_required
@@ -118,67 +211,61 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+
+
+@app.route('/edit_profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    if request.method == 'POST':
+        current_user.first_name = request.form.get('first_name')
+        current_user.last_name = request.form.get('last_name')
+        current_user.bio = request.form.get('bio')
+        current_user.college = request.form.get('college')
+        current_user.skills = request.form.get('skills')
+        current_user.github = request.form.get('github')
+        current_user.linkedin = request.form.get('linkedin')
+
+        # Handle profile picture upload
+        if 'profile_picture' in request.files:
+            pic = request.files['profile_picture']
+            if pic and pic.filename != '':
+                filename = secure_filename(pic.filename)
+                filepath = os.path.join('static/uploads', filename)
+                pic.save(filepath)
+                current_user.profile_picture = filename
+
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('profile'))
+
+    return render_template('settings.html')
+
+
+
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
     if request.method == 'POST':
         current_user.first_name = request.form['first_name']
         current_user.last_name = request.form['last_name']
-        current_user.email = request.form['email']
         current_user.bio = request.form['bio']
-        current_user.profile_picture = request.form['profile_picture']
-        db.session.commit() #No need of adding because we are updating th exsisting data
-        flash('Profile updated!', 'success')
+        current_user.skills = request.form['skills']
+        current_user.college = request.form['college']
+
+        if 'profile_picture' in request.files:
+            file = request.files['profile_picture']
+            if file.filename:
+                filename = secure_filename(file.filename)
+                filepath = os.path.join('static/uploads', filename)
+                file.save(filepath)
+                current_user.profile_picture = filename
+        db.session.commit()
+        flash("Profile updated!", "success")
         return redirect(url_for('profile'))
-
-    user_projects = current_user.projects
-    print(current_user.profile_picture)
-    return render_template('profile.html', user=current_user, user_projects=user_projects)
-
-@app.route('/projects/create', methods=['GET', 'POST'])
-@login_required
-def create_project():
-    if request.method == 'POST':
-        name = request.form['name']
-        description = request.form['description']
-        project = Project(
-            name=name,
-            description=description,
-            created_by=current_user.id
-        )
-        project.members.append(current_user)
-        db.session.add(project)
-        db.session.commit()
-        flash('Project created!', 'success')
-        return redirect(url_for('project_detail', project_id=project.id))
-    return render_template('create_project.html')
-
-
-@app.route('/projects/<int:project_id>')
-@login_required
-def project_detail(project_id):
-    project = Project.query.get_or_404(project_id)
-    return render_template('project_detail.html', project=project)  # <- THIS LINE
-
-@app.route('/projects/<int:project_id>/join')
-@login_required
-def join_project(project_id):
-    project = Project.query.get_or_404(project_id)
-    if current_user not in project.members:
-        project.members.append(current_user)
-        db.session.commit()
-        flash('You joined the project!', 'success')
-    return redirect(url_for('project_detail', project_id=project_id))
-
-@app.route('/projects/<int:project_id>/leave')
-@login_required
-def leave_project(project_id):
-    project = Project.query.get_or_404(project_id)
-    if current_user in project.members:
-        project.members.remove(current_user)
-        db.session.commit()
-        flash('You left the project.', 'warning')
-    return redirect(url_for('project_detail', project_id=project_id))
+        return redirect(url_for('my_projects', project_id=project.id ))
+    
+    user_projects = current_user.owned_projects + current_user.joined_projects
+    return render_template('profile/profile.html' , user=current_user, user_projects=user_projects)
 
 @app.route('/friends')
 @login_required
@@ -274,6 +361,433 @@ def reject_friend_request(request_id):
         db.session.commit()
         flash('Friend request rejected.', 'danger')
     return redirect(url_for('search_friends'))
+
+
+@app.route('/my-projects' , methods = ['GET' , 'POST'])
+@login_required
+def my_projects():
+    friendships = Friendship.query.filter(
+        (Friendship.user1_id == current_user.id) | (Friendship.user2_id == current_user.id)
+    ).all()
+
+    friends_list = []
+
+    for friendship in friendships:
+        if friendship.user1_id == current_user.id:
+            friends_list.append(friendship.user2)
+        else:
+            friends_list.append(friendship.user1)
+    
+
+
+    projects = Project.query.filter(
+        (Project.owner_id == current_user.id) | 
+        (Project.team_members.any(id=current_user.id))  # Check if user is in the team_members relationship
+    ).all()
+
+    return render_template('project/dashboard.html', projects=projects)
+
+@app.route('/create_project', methods=['GET', 'POST'])
+@login_required
+def create_project():
+    # form logic to add project
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        github_url = request.form['github_url']
+        visibility = request.form['visibility']
+
+        project = Project(title = title , description = description , github_url = github_url ,
+                        owner_id = current_user.id , visibility = visibility)
+        db.session.add(project)
+        db.session.commit()
+        return redirect(url_for('my_projects'))
+    elif request.method == 'GET':
+        return render_template('project/create_project.html')
+
+
+"""
+@app.route('/project/add_member/<int:user_id>/<string:role>/<int:project_id>' , methods = ['POST'])
+@login_required
+def add_member(user_id , role , project_id):
+    member_obj = project_members(project_id = project_id , user_id = user_id , role = role )
+    db.session.add(member_obj)
+    db.session.commit()
+    return redirect('create_project')
+"""
+@app.route('/project/<int:project_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_project(project_id):
+    friendships = Friendship.query.filter(
+        (Friendship.user1_id == current_user.id) | (Friendship.user2_id == current_user.id)
+    ).all()
+
+    friends_list = []
+
+    for friendship in friendships:
+        if friendship.user1_id == current_user.id:
+            friends_list.append(friendship.user2)
+        else:
+            friends_list.append(friendship.user1)
+
+            
+    project = Project.query.get_or_404(project_id)
+
+    # Check if the current user is either the owner or a team member
+    if project.owner_id != current_user.id and current_user not in project.team_members:
+        flash("You do not have permission to view or edit this project.", "error")
+        return redirect(url_for('my_projects'))  # Redirect to the user's projects if no permission
+
+    # Handle POST request to update project details
+    if request.method == 'POST':
+        project.title = request.form['title']
+        project.description = request.form['description']
+        project.github_url = request.form['github_url']
+        project.visibility = request.form['visibility']
+        db.session.commit()
+        flash("Project details updated successfully!", "success")
+        return redirect(url_for('my_projects'))
+
+    # If GET request, render the project page
+    return render_template('project/edit_project.html', project=project , friends_list = friends_list)
+
+
+
+@app.route('/project/add_member', methods=['POST'])
+@login_required
+def add_member():
+    user_id = request.form.get('user_id')
+    role = request.form.get('role')
+    project_id = request.form.get('project_id')
+
+    if not user_id or not role or not project_id:
+        flash("Missing required fields.", "error")
+        return redirect(url_for('edit_project', project_id=project_id))  # Go back to the edit page
+
+    try:
+        # Insert into the many-to-many relationship table
+        db.session.execute(
+            project_members.insert().values(
+                project_id=int(project_id),
+                user_id=int(user_id),
+                role=role,
+                joined_at=datetime.utcnow()
+            )
+        )
+        db.session.commit()
+        flash("Member added successfully!", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash("Error adding member: " + str(e), "error")
+
+    return redirect(url_for('edit_project', project_id=project_id))
+
+
+
+
+@app.route('/project/<int:project_id>', methods=['GET'])
+@login_required
+def project_page(project_id):
+    project = Project.query.get_or_404(project_id)
+
+    # Check if the user is the owner or a member of the project
+    if project.owner_id != current_user.id and current_user not in project.team_members:
+        flash("You do not have permission to view this project.", "error")
+        return redirect(url_for('my_projects'))  # Redirect if not authorized
+
+    return render_template('project/project_page.html', project=project)
+
+
+
+
+@app.route('/project/<int:project_id>/delete', methods=['POST'])
+@login_required
+def delete_project(project_id):
+    project = Project.query.get_or_404(project_id)
+
+    # Only the owner can delete the project
+    if project.owner_id != current_user.id:
+        flash("You are not authorized to delete this project.", "error")
+        return redirect(url_for('my_projects'))
+
+    try:
+        db.session.delete(project)
+        db.session.commit()
+        flash("Project deleted successfully.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error deleting project: {str(e)}", "error")
+
+    return redirect(url_for('my_projects'))
+
+
+
+
+
+
+@app.route('/settings', methods=['GET', 'POST'])
+@login_required
+def settings():
+    # Handle form submissions
+    if request.method == 'POST':
+        form_type = request.form.get('form_type')
+        
+        # Account Information Update
+        if form_type == 'account_info':
+            current_user.first_name = request.form.get('first_name')
+            current_user.last_name = request.form.get('last_name')
+            current_user.email = request.form.get('email')
+            db.session.commit()
+            flash('Account information updated successfully!', 'success')
+            
+        # Profile Picture Update
+        elif form_type == 'profile_picture':
+            # Check if user wants to remove picture
+            if request.form.get('remove_picture'):
+                # If there's an existing picture, you might want to delete the file
+                if current_user.profile_picture:
+                    try:
+                        os.remove(os.path.join('static/uploads', current_user.profile_picture))
+                    except:
+                        pass  # File might not exist
+                current_user.profile_picture = None
+                db.session.commit()
+                flash('Profile picture removed.', 'success')
+            # Handle new picture upload
+            elif 'profile_picture' in request.files:
+                file = request.files['profile_picture']
+                if file and file.filename:
+                    # Check file size (5MB max)
+                    if len(file.read()) > 5 * 1024 * 1024:
+                        flash('File too large. Maximum size is 5MB.', 'danger')
+                        return redirect(url_for('settings') + '#profile')
+                    
+                    # Reset file pointer after reading for size check
+                    file.seek(0)
+                    
+                    # Save the file
+                    filename = secure_filename(f"{current_user.id}_{int(datetime.utcnow().timestamp())}_{file.filename}")
+                    filepath = os.path.join('static/uploads', filename)
+                    
+                    # Create directory if it doesn't exist
+                    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+                    
+                    file.save(filepath)
+                    
+                    # Update user's profile picture in the database
+                    current_user.profile_picture = filename
+                    db.session.commit()
+                    flash('Profile picture updated successfully!', 'success')
+            
+        # Profile Information Update
+        elif form_type == 'profile_info':
+            current_user.bio = request.form.get('bio')
+            current_user.college = request.form.get('college')
+            current_user.skills = request.form.get('skills')
+            current_user.github = request.form.get('github')
+            current_user.linkedin = request.form.get('linkedin')
+            db.session.commit()
+            flash('Profile information updated successfully!', 'success')
+            
+        # Change Password
+        elif form_type == 'change_password':
+            current_password = request.form.get('current_password')
+            new_password = request.form.get('new_password')
+            confirm_password = request.form.get('confirm_password')
+            
+            # Check if current password is correct
+            if not bcrypt.check_password_hash(current_user.password, current_password):
+                flash('Current password is incorrect.', 'danger')
+                return redirect(url_for('settings') + '#security')
+            
+            # Check if new passwords match
+            if new_password != confirm_password:
+                flash('New passwords do not match.', 'danger')
+                return redirect(url_for('settings') + '#security')
+            
+            # Check password length
+            if len(new_password) < 8:
+                flash('Password must be at least 8 characters long.', 'danger')
+                return redirect(url_for('settings') + '#security')
+            
+            # Update password
+            hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+            current_user.password = hashed_password
+            db.session.commit()
+            flash('Password changed successfully!', 'success')
+            
+        # Notification Settings
+        elif form_type == 'notification_settings':
+            # Here you would save the notification preferences
+            # This would typically be stored in a separate NotificationSettings model
+            flash('Notification preferences saved!', 'success')
+            
+        # Privacy Settings
+        elif form_type == 'privacy_settings':
+            # Here you would save the privacy settings
+            # This would typically be stored in a separate PrivacySettings model
+            flash('Privacy settings saved!', 'success')
+    
+    return render_template('settings.html')
+
+# 1. First, let's update the Messages model to properly extend db.Model
+
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    is_read = db.Column(db.Boolean, default=False)
+    
+    # Define relationships with User model
+    sender = db.relationship('User', foreign_keys=[sender_id], backref='sent_messages')
+    recipient = db.relationship('User', foreign_keys=[recipient_id], backref='received_messages')
+
+# 2. Now let's add the necessary routes for messaging
+
+@app.route('/messages')
+@login_required
+def messages():
+    """View all conversations"""
+    # Get list of users the current user has exchanged messages with
+    sent_to = db.session.query(User).join(Message, Message.recipient_id == User.id)\
+        .filter(Message.sender_id == current_user.id).distinct()
+    
+    received_from = db.session.query(User).join(Message, Message.sender_id == User.id)\
+        .filter(Message.recipient_id == current_user.id).distinct()
+    
+    # Combine and remove duplicates
+    conversation_partners = sent_to.union(received_from).all()
+    
+    # Count unread messages from each user
+    unread_counts = {}
+    for partner in conversation_partners:
+        unread_count = Message.query.filter_by(
+            sender_id=partner.id, 
+            recipient_id=current_user.id,
+            is_read=False
+        ).count()
+        unread_counts[partner.id] = unread_count
+    
+    return render_template(
+        'messages/conversations.html', 
+        conversation_partners=conversation_partners,
+        unread_counts=unread_counts
+    )
+
+@app.route('/messages/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+def conversation(user_id):
+    """View and send messages in a conversation with a specific user"""
+    other_user = User.query.get_or_404(user_id)
+    
+    # Handle sending new message
+    if request.method == 'POST':
+        content = request.form.get('message')
+        if content and content.strip():
+            message = Message(
+                sender_id=current_user.id,
+                recipient_id=user_id,
+                content=content
+            )
+            db.session.add(message)
+            db.session.commit()
+            flash('Message sent!', 'success')
+            return redirect(url_for('conversation', user_id=user_id))
+    
+    # Get all messages between the current user and the other user
+    sent_messages = Message.query.filter_by(
+        sender_id=current_user.id, 
+        recipient_id=user_id
+    ).order_by(Message.timestamp).all()
+    
+    received_messages = Message.query.filter_by(
+        sender_id=user_id, 
+        recipient_id=current_user.id
+    ).order_by(Message.timestamp).all()
+    
+    # Mark received messages as read
+    for message in received_messages:
+        if not message.is_read:
+            message.is_read = True
+    
+    db.session.commit()
+    
+    # Combine and sort all messages by timestamp
+    all_messages = sorted(sent_messages + received_messages, key=lambda x: x.timestamp)
+    
+    return render_template(
+        'messages/conversation.html',
+        other_user=other_user,
+        messages=all_messages
+    )
+
+@app.route('/messages/new', methods=['GET', 'POST'])
+@login_required
+def new_message():
+    """Start a new conversation"""
+    if request.method == 'POST':
+        recipient_id = request.form.get('recipient_id')
+        content = request.form.get('message')
+        
+        if not recipient_id or not content or not content.strip():
+            flash('Both recipient and message are required.', 'danger')
+            return redirect(url_for('new_message'))
+        
+        # Check if recipient exists
+        recipient = User.query.get(recipient_id)
+        if not recipient:
+            flash('User not found.', 'danger')
+            return redirect(url_for('new_message'))
+        
+        message = Message(
+            sender_id=current_user.id,
+            recipient_id=recipient_id,
+            content=content
+        )
+        
+        db.session.add(message)
+        db.session.commit()
+        flash('Message sent!', 'success')
+        return redirect(url_for('conversation', user_id=recipient_id))
+    
+    # Get friends list for dropdown
+    friendships = Friendship.query.filter(
+        (Friendship.user1_id == current_user.id) | (Friendship.user2_id == current_user.id)
+    ).all()
+
+    friends_list = []
+    for friendship in friendships:
+        if friendship.user1_id == current_user.id:
+            friends_list.append(friendship.user2)
+        else:
+            friends_list.append(friendship.user1)
+    
+    return render_template('messages/new_message.html', friends=friends_list)
+
+# Add this route to get unread message count for navbar badge
+@app.route('/api/unread-count')
+@login_required
+def unread_count():
+    count = Message.query.filter_by(
+        recipient_id=current_user.id,
+        is_read=False
+    ).count()
+    return {'count': count}
+
+
+
+@app.route('/refresh_conversation/<int:user_id>')
+@login_required
+def refresh_conversation(user_id):
+    other_user = User.query.get_or_404(user_id)
+    messages = Message.query.filter(
+        ((Message.sender_id == current_user.id) & (Message.recipient_id == user_id)) |
+        ((Message.sender_id == user_id) & (Message.recipient_id == current_user.id))
+    ).order_by(Message.timestamp).all()
+    return render_template('messages/conversation_messages.html', messages=messages)
+
 
 
 # Run

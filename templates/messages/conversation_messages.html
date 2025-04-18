@@ -1,0 +1,11 @@
+{% for message in messages %}
+<div class="d-flex mb-3 {% if message.sender_id == current_user.id %}justify-content-end{% endif %}">
+    <div class="{% if message.sender_id == current_user.id %}bg-primary text-white{% else %}bg-light{% endif %} rounded p-3" 
+         style="max-width: 75%;">
+        {{ message.content }}
+        <div class="mt-1 small text-{% if message.sender_id == current_user.id %}light{% else %}muted{% endif %}">
+            {{ message.timestamp.strftime('%I:%M %p | %b %d') }}
+        </div>
+    </div>
+</div>
+{% endfor %}
