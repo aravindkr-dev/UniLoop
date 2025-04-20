@@ -1,4 +1,4 @@
 from app import app, socketio
 
-# Make SocketIO server callable for Gunicorn
-application = socketio
+# Wrap the Flask app using the socketio WSGI app
+application = socketio.get_wsgi_app(app)
