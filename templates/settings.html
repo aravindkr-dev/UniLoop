@@ -40,6 +40,7 @@
                         </div>
                         <div class="card-body">
                             <form action="{{ url_for('settings') }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="hidden" name="form_type" value="account_info">
                                 
                                 <div class="row mb-3">
@@ -73,6 +74,7 @@
                         </div>
                         <div class="card-body">
                             <form action="{{ url_for('settings') }}" method="POST" enctype="multipart/form-data">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="hidden" name="form_type" value="profile_picture">
                                 
                                 <div class="row align-items-center">
@@ -107,6 +109,7 @@
                         </div>
                         <div class="card-body">
                             <form action="{{ url_for('settings') }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="hidden" name="form_type" value="profile_info">
                                 
                                 <div class="mb-3">
@@ -151,6 +154,7 @@
                         </div>
                         <div class="card-body">
                             <form action="{{ url_for('settings') }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="hidden" name="form_type" value="change_password">
                                 
                                 <div class="mb-3">
@@ -183,6 +187,7 @@
                         </div>
                         <div class="card-body">
                             <form action="{{ url_for('settings') }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="hidden" name="form_type" value="notification_settings">
                                 
                                 <div class="mb-3">
@@ -231,6 +236,7 @@
                         </div>
                         <div class="card-body">
                             <form action="{{ url_for('settings') }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="hidden" name="form_type" value="privacy_settings">
                                 
                                 <div class="mb-3">

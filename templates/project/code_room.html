@@ -46,6 +46,7 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
             <form action="{{ url_for('delete_code_room', room_id=room.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="btn btn-danger">Delete</button>
             </form>
           </div>
@@ -63,14 +64,43 @@
         if (DEBUG) console.log(...args);
     }
 
+    // Initialize editor first
+    const editor = ace.edit("editor");
+    editor.setTheme("ace/theme/monokai");
+    editor.session.setMode("ace/mode/python");
+    
+    // Fix: Set initial content with proper escaping
+    // Use JSON.parse to handle escaped special characters properly
+    try {
+        const initialContent = `{{ room.content|safe }}`;
+        if (initialContent && initialContent.trim() !== '') {
+            editor.setValue(initialContent, -1);
+            log('Initial content loaded');
+        } else {
+            log('No initial content found');
+        }
+    } catch (e) {
+        console.error('Error setting initial content:', e);
+    }
+    
+    // Prevent editor changes from being re-emitted
+    let ignoreChange = false;
+    
     // Initialize socket.io
-    const socket = io();
+    const socket = io({
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000
+    });
+    
     const roomId = "{{ room.id }}";
     const userId = "{{ current_user.id }}";
     const username = "{{ current_user.first_name }} {{ current_user.last_name }}";
     
     socket.on('connect', function() {
         log('Socket.IO connected!');
+        document.getElementById('status').textContent = 'Connected';
+        document.getElementById('status').className = 'ms-3 text-success';
         
         // Join the room after connection is established
         socket.emit('join', {
@@ -84,18 +114,20 @@
     
     socket.on('connect_error', function(error) {
         console.error('Socket.IO connection error:', error);
+        document.getElementById('status').textContent = 'Connection error';
+        document.getElementById('status').className = 'ms-3 text-danger';
     });
     
-    // Initialize Ace editor
-    const editor = ace.edit("editor");
-    editor.setTheme("ace/theme/monokai");
-    editor.session.setMode("ace/mode/python");
-    
-    // Set initial content
-    editor.setValue("{{ room.content|safe }}", -1);
-    
-    // Prevent editor changes from being re-emitted
-    let ignoreChange = false;
+    socket.on('disconnect', function() {
+        log('Socket.IO disconnected');
+        document.getElementById('status').textContent = 'Disconnected';
+        document.getElementById('status').className = 'ms-3 text-warning';
+        
+        // Try to reconnect automatically
+        setTimeout(() => {
+            socket.connect();
+        }, 1000);
+    });
     
     // Listen for changes in the editor
     editor.on("change", function() {
@@ -113,7 +145,7 @@
         ignoreChange = false;
     });
     
-    // Save button click handler
+    // Save button click handler with improved error handling
     document.getElementById("saveBtn").onclick = () => {
         const code = editor.getValue();
         const status = document.getElementById("status");
@@ -123,20 +155,28 @@
         
         fetch(`/save/${roomId}`, {
             method: "POST",
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'  // Include CSRF token
+            },
             body: JSON.stringify({ code })
         })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`Server responded with status: ${res.status}`);
+            }
+            return res.json();
+        })
         .then(data => {
             status.textContent = "Code saved successfully!";
             status.className = "ms-3 text-success";
             setTimeout(() => {
-                status.textContent = "";
+                status.textContent = "Connected";
             }, 3000);
         })
         .catch(err => {
             console.error("Save error:", err);
-            status.textContent = "Error saving code. Please try again.";
+            status.textContent = "Error saving code: " + err.message;
             status.className = "ms-3 text-danger";
         });
     };
@@ -146,7 +186,6 @@
     if (deleteBtn) {
         deleteBtn.onclick = () => {
             // Modal will handle the actual delete action
-            // This is just for the button to open the modal
             log('Delete button clicked');
         };
     }
@@ -168,15 +207,5 @@
             userList.appendChild(userDiv);
         });
     });
-    // Update your fetch call to handle errors properly
-fetch(`/save/${roomId}`, {
-    method: "POST",
-    headers: { 
-        'Content-Type': 'application/json',
-        'X-CSRFToken': '{{ csrf_token() }}'  // Add this line
-    },
-    body: JSON.stringify({ code })
-})
-
 </script>
 {% endblock %}

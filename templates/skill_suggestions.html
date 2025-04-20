@@ -88,6 +88,7 @@
                     </p>
                     
                     <form action="{{ url_for('find_by_skill') }}" method="POST" class="row g-3">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="col-md-8">
                             <input type="text" name="skill" class="form-control" placeholder="Enter skill (e.g., Python, Data Analysis, UI Design)" required>
                         </div>

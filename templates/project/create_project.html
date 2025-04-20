@@ -11,18 +11,70 @@
         <h1 class="text-3xl font-bold mb-6">➕ Create New Project</h1>
 
         <form method="POST" action="{{ url_for('create_project') }}" class="bg-white shadow-md rounded-lg p-6 space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input name="title" required placeholder="Project Title" class="w-full p-3 border rounded-md" />
             <textarea name="description" required placeholder="Description" rows="4" class="w-full p-3 border rounded-md"></textarea>
-            <input name="github_url" placeholder="GitHub URL (optional)" class="w-full p-3 border rounded-md" />
+            
+            <div class="space-y-3">
+                <h3 class="text-lg font-medium">Project Links <span class="text-red-500">*</span></h3>
+                <p class="text-sm text-gray-600">At least one link is required (GitHub or Demo)</p>
+                
+                <div class="flex flex-col space-y-3">
+                    <input name="github_url" placeholder="GitHub Repository URL" class="w-full p-3 border rounded-md" 
+                           id="github_url" oninput="validateLinks()" />
+                    
+                    <input name="demo_url" placeholder="Live Demo/Project URL" class="w-full p-3 border rounded-md" 
+                           id="demo_url" oninput="validateLinks()" />
+                    
+                    <div id="link_error" class="hidden text-red-500 text-sm">
+                        Please provide at least one project link (GitHub or Demo URL)
+                    </div>
+                </div>
+            </div>
+            
             <select name="visibility" class="w-full p-3 border rounded-md">
                 <option value="public">Public</option>
                 <option value="private">Private</option>
             </select>
 
-            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+            <button type="submit" id="submit_btn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
                 Create Project
             </button>
         </form>
     </div>
+
+    <script>
+        function validateLinks() {
+            const githubUrl = document.getElementById('github_url').value.trim();
+            const demoUrl = document.getElementById('demo_url').value.trim();
+            const errorDiv = document.getElementById('link_error');
+            const submitBtn = document.getElementById('submit_btn');
+            
+            if (!githubUrl && !demoUrl) {
+                errorDiv.classList.remove('hidden');
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                errorDiv.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+        
+        // Initial validation on page load
+        document.addEventListener('DOMContentLoaded', validateLinks);
+        
+        // Form validation before submission
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const githubUrl = document.getElementById('github_url').value.trim();
+            const demoUrl = document.getElementById('demo_url').value.trim();
+            
+            if (!githubUrl && !demoUrl) {
+                e.preventDefault();
+                document.getElementById('link_error').classList.remove('hidden');
+                window.scrollTo(0, document.getElementById('github_url').offsetTop - 100);
+            }
+        });
+    </script>
 </body>
 </html>

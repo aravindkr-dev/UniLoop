@@ -12,6 +12,7 @@
                     </p>
                     
                     <form method="POST" class="mb-4">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="mb-3">
                             <label for="skill" class="form-label">Skill:</label>
                             <input type="text" id="skill" name="skill" class="form-control form-control-lg" 

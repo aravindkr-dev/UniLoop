@@ -4,6 +4,7 @@
 <div class="container mt-5">
   <h2>Search Friends</h2>
   <form method="POST" action="{{ url_for('search_friends') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="input-group mb-3">
       <input type="text" name="query" class="form-control" placeholder="Search by name or email" required>
       <button class="btn btn-primary" type="submit">Search</button>

@@ -10,6 +10,7 @@
 <body class="p-4">
   <h1>Code Editor</h1>
   <form method="POST" action="/save">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input name="title" class="form-control mb-2" placeholder="Title">
     <div id="editor" style="height: 400px; width: 100%;">// Write your code here</div>
     <textarea name="code" id="code" hidden></textarea>

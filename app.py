@@ -1,5 +1,5 @@
 import uuid
-from flask import Flask, abort, current_app, jsonify, render_template, redirect, url_for, request, flash
+from flask import Flask, abort, jsonify, render_template, redirect, url_for, request, flash
 from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import insert
@@ -16,8 +16,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import current_user, login_required
 from datetime import datetime
 import uuid
-
 from flask_wtf.csrf import CSRFProtect
+import humanize
+from datetime import datetime
 
 
 app = Flask(__name__)
@@ -54,47 +55,6 @@ project_participants = db.Table('project_participants',
 )
 
 # Models
-
-
-
-project_members = db.Table('project_members',
-    db.Column('project_id', db.Integer, db.ForeignKey('project.id')),
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
-    db.Column('role', db.String(50)),
-    db.Column('joined_at', db.DateTime, default=datetime.utcnow)
-)
-
-class Project(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(120), nullable=False)
-    description = db.Column(db.Text, nullable=False)
-    tags = db.Column(db.String(255))
-    github_url = db.Column(db.String(255))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    visibility = db.Column(db.String(20), default='public')
-    likes = db.Column(db.Integer, default=0)
-
-    # Relationships
-    owner = db.relationship('User', back_populates='owned_projects')
-    code_rooms = db.relationship('CodeRoom', backref='project', cascade="all, delete-orphan")
-
-
-team_members = db.relationship(
-    'User',
-    secondary=project_members,
-    backref=db.backref('projects_as_member', lazy='dynamic'),  # Changed backref name
-    lazy='dynamic'
-)
-
-# Fix code_rooms relationship
-code_rooms = db.relationship(
-    'CodeRoom',
-    back_populates='project',
-    cascade='all, delete-orphan'
-)
-
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(150), nullable=False)
@@ -117,12 +77,12 @@ class User(UserMixin, db.Model):
     # Relationships
     owned_projects = db.relationship('Project', back_populates='owner')
     #joined_projects = db.relationship('Project', secondary='project_members', back_populates='team_members')
-    joined_projects = db.relationship(
-    'Project',
-    secondary=project_members,
-    backref=db.backref('project_members', lazy='dynamic'),  # Consistent backref
-    lazy='dynamic'
-)
+    joined_projects = db.relationship('Project', 
+                                     secondary='project_members',
+                                     primaryjoin="User.id == ProjectMember.user_id",
+                                     secondaryjoin="ProjectMember.project_id == Project.id",
+                                     viewonly=True)
+
     skills = db.Column(db.Text)
     
     # Helper method to get skills as a list
@@ -130,6 +90,115 @@ class User(UserMixin, db.Model):
         if not self.skills:
             return []
         return [skill.strip().lower() for skill in self.skills.split(',')]
+
+class Project(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    github_url = db.Column(db.String(255))
+    demo_url = db.Column(db.String(255))
+    documentation_url = db.Column(db.String(255))  # Added for documentation link
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    visibility = db.Column(db.String(20), default='public')
+    likes = db.Column(db.Integer, default=0)
+
+    # Relationships
+    owner = db.relationship('User', foreign_keys=[owner_id], back_populates='owned_projects')
+    team_members = db.relationship('ProjectMember', back_populates='project', cascade="all, delete-orphan")
+    tags = db.relationship('Tag', secondary='project_tags', back_populates='projects')
+    activities = db.relationship('ProjectActivity', back_populates='project', cascade="all, delete-orphan", 
+                                order_by="desc(ProjectActivity.timestamp)")
+    code_rooms = db.relationship('CodeRoom', back_populates='project', cascade="all, delete-orphan")
+
+    @property
+    def members(self):
+        return [member.user for member in self.team_members]
+    
+    # Helper method to check if a user is a member
+    def has_member(self, user):
+        for member in self.team_members:
+            if member.user_id == user.id:
+                return True
+        return False
+        
+    # Helper property to get formatted team members with proper roles
+    @property
+    def formatted_team_members(self):
+        """Returns team members with additional owner flag for template use"""
+        members = []
+        # Add owner first
+        owner_data = {
+            'user_id': self.owner_id,
+            'first_name': self.owner.first_name,
+            'last_name': self.owner.last_name,
+            'profile_pic': self.owner.profile_pic if hasattr(self.owner, 'profile_pic') else None,
+            'is_owner': True,
+            'role': 'Owner'
+        }
+        members.append(owner_data)
+        
+        # Add other members
+        for member in self.team_members:
+            if member.user_id != self.owner_id:  # Skip owner as we already added them
+                members.append({
+                    'user_id': member.user_id,
+                    'first_name': member.user.first_name,
+                    'last_name': member.user.last_name,
+                    'profile_pic': member.user.profile_pic if hasattr(member.user, 'profile_pic') else None,
+                    'is_owner': False,
+                    'role': member.role
+                })
+        return members
+
+# Define ProjectMember model for many-to-many relationship with additional data
+class ProjectMember(db.Model):
+    __tablename__ = 'project_members'
+    
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    role = db.Column(db.String(50))
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    project = db.relationship('Project', back_populates='team_members')
+    user = db.relationship('User')
+
+# Create Tag model
+class Tag(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    
+    # Relationships
+    projects = db.relationship('Project', secondary='project_tags', back_populates='tags')
+
+# Create project_tags association table
+project_tags = db.Table('project_tags',
+    db.Column('project_id', db.Integer, db.ForeignKey('project.id'), primary_key=True),
+    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True)
+)
+
+# Create ProjectActivity model for tracking activities
+class ProjectActivity(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    description = db.Column(db.String(255), nullable=False)
+    icon = db.Column(db.String(50))  # For FontAwesome icons
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    project = db.relationship('Project', back_populates='activities')
+    user = db.relationship('User')
+
+
+"""team_members = db.relationship(
+    'User',
+    secondary=ProjectMember,
+    backref='joined_projects'
+)
+"""
 
 class Messages():
     id = db.Column(db.Integer , primary_key = True)
@@ -166,16 +235,16 @@ class CodeRoom(db.Model):
     language = db.Column(db.String(50), default='python')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    #project = db.relationship('Project', back_populates='code_rooms')
-    project = db.relationship(
-    'Project',
-    back_populates='code_rooms')
     
     # Remove this line or replace with project = db.relationship('Project')
-    # project = db.relationship('Project', backref='code_rooms')
     project = db.relationship('Project', back_populates='code_rooms')
 
 # Update your login route to handle redirects properly
+@app.template_filter('timeago')
+def timeago_filter(dt):
+    if not dt:
+        return "unknown time"
+    return humanize.naturaltime(datetime.utcnow() - dt)
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     # If user is already authenticated, redirect to dashboard
@@ -301,14 +370,22 @@ def edit_profile():
 
 
 @app.route('/profile', methods=['GET', 'POST'])
+@app.route('/profile/<int:user_id>', methods=['GET'])
 @login_required
-def profile():
-    if request.method == 'POST':
-        current_user.first_name = request.form['first_name']
-        current_user.last_name = request.form['last_name']
-        current_user.bio = request.form['bio']
-        current_user.skills = request.form['skills']
-        current_user.college = request.form['college']
+def profile(user_id=None):
+    # If no user_id is specified, show the current user's profile
+    if user_id is None:
+        user = current_user
+    else:
+        user = User.query.get_or_404(user_id)
+    
+    # Handle POST requests (profile updates) - only for current user
+    if request.method == 'POST' and user.id == current_user.id:
+        user.first_name = request.form['first_name']
+        user.last_name = request.form['last_name']
+        user.bio = request.form['bio']
+        user.skills = request.form['skills']
+        user.college = request.form['college']
 
         if 'profile_picture' in request.files:
             file = request.files['profile_picture']
@@ -316,15 +393,34 @@ def profile():
                 filename = secure_filename(file.filename)
                 filepath = os.path.join('static/uploads', filename)
                 file.save(filepath)
-                current_user.profile_picture = filename
+                user.profile_picture = filename
+        
         db.session.commit()
         flash("Profile updated!", "success")
         return redirect(url_for('profile'))
-        return redirect(url_for('my_projects', project_id=project.id ))
     
-    user_projects = current_user.owned_projects + current_user.joined_projects
-    return render_template('profile/profile.html' , user=current_user, user_projects=user_projects)
+    # Get user's projects (both owned and participated)
+    user_projects = user.owned_projects + user.joined_projects
+    
+    # Get user's friends
+    friendships = Friendship.query.filter(
+        (Friendship.user1_id == user.id) | (Friendship.user2_id == user.id)
+    ).all()
 
+    friends_list = []
+    for friendship in friendships:
+        if friendship.user1_id == user.id:
+            friends_list.append(friendship.user2)
+        else:
+            friends_list.append(friendship.user1)
+    
+    return render_template(
+        'profile/profile.html', 
+        user=user, 
+        user_projects=user_projects,
+        friends_list=friends_list,
+        is_own_profile=(user.id == current_user.id)
+    )
 @app.route('/friends')
 @login_required
 def friends():
@@ -421,7 +517,7 @@ def reject_friend_request(request_id):
     return redirect(url_for('search_friends'))
 
 
-@app.route('/my-projects' , methods = ['GET' , 'POST'])
+@app.route('/my-projects', methods=['GET', 'POST'])
 @login_required
 def my_projects():
     friendships = Friendship.query.filter(
@@ -436,11 +532,10 @@ def my_projects():
         else:
             friends_list.append(friendship.user1)
     
-
-
+    # Modified query using user_id instead of id
     projects = Project.query.filter(
         (Project.owner_id == current_user.id) | 
-        (Project.team_members.any(id=current_user.id))  # Check if user is in the team_members relationship
+        (Project.team_members.any(user_id=current_user.id))  # Changed id to user_id
     ).all()
 
     return render_template('project/dashboard.html', projects=projects)
@@ -448,17 +543,29 @@ def my_projects():
 @app.route('/create_project', methods=['GET', 'POST'])
 @login_required
 def create_project():
-    # form logic to add project
     if request.method == 'POST':
         title = request.form['title']
         description = request.form['description']
         github_url = request.form['github_url']
+        demo_url = request.form.get('demo_url', '')
         visibility = request.form['visibility']
+        
+        # Validate that at least one URL is provided
+        if not github_url and not demo_url:
+            flash("Please provide at least one project link (GitHub or Demo URL)", "danger")
+            return render_template('project/create_project.html')
 
-        project = Project(title = title , description = description , github_url = github_url ,
-                        owner_id = current_user.id , visibility = visibility)
+        project = Project(
+            title=title,
+            description=description,
+            github_url=github_url,
+            demo_url=demo_url,
+            owner_id=current_user.id,
+            visibility=visibility
+        )
         db.session.add(project)
         db.session.commit()
+        flash("Project created successfully!", "success")
         return redirect(url_for('my_projects'))
     elif request.method == 'GET':
         return render_template('project/create_project.html')
@@ -501,13 +608,21 @@ def edit_project(project_id):
         project.title = request.form['title']
         project.description = request.form['description']
         project.github_url = request.form['github_url']
+        project.demo_url = request.form.get('demo_url', '')
         project.visibility = request.form['visibility']
+        
+        # Validate that at least one URL is provided
+        if not project.github_url and not project.demo_url:
+            flash("Please provide at least one project link (GitHub or Demo URL)", "danger")
+            return render_template('project/edit_project.html', project=project, friends_list=friends_list)
+            
         db.session.commit()
         flash("Project details updated successfully!", "success")
         return redirect(url_for('my_projects'))
 
     # If GET request, render the project page
-    return render_template('project/edit_project.html', project=project , friends_list = friends_list)
+    return render_template('project/edit_project.html', project=project, friends_list=friends_list)
+
 
 
 
@@ -525,7 +640,7 @@ def add_member():
     try:
         # Insert into the many-to-many relationship table
         db.session.execute(
-            project_members.insert().values(
+            ProjectMember.insert().values(
                 project_id=int(project_id),
                 user_id=int(user_id),
                 role=role,
@@ -553,7 +668,7 @@ def project_page(project_id):
         flash("You do not have permission to view this project.", "error")
         return redirect(url_for('my_projects'))  # Redirect if not authorized
 
-    return render_template('project/project_page.html', project=project)
+    return render_template('project/view_project.html', project=project)
 
 
 
@@ -589,11 +704,7 @@ def project_code_rooms(project_id):
         flash('You do not have access to this project.', 'danger')
         return redirect(url_for('home'))
     
-    code_rooms = db.relationship(
-        'CodeRoom', 
-        back_populates='project',  # Match the backref name
-        cascade="all, delete-orphan"
-    )
+    code_rooms = CodeRoom.query.filter_by(project_id=project_id).all()
     return render_template('project/project_code_rooms.html', project=project, code_rooms=code_rooms)
 
 @app.route('/project/<int:project_id>/code/create', methods=['GET', 'POST'])
@@ -623,56 +734,61 @@ def create_code_room(project_id):
     
     return render_template('project/create_code_room.html', project=project)
 
+# Make sure this route correctly loads the code room with the saved content
 @app.route('/code/<room_id>')
 @login_required
 def code_room(room_id):
-    room = CodeRoom.query.get_or_404(room_id)
-    project = Project.query.get(room.project_id)
-    
-    # Check if user has access to this project
-    if project.owner_id != current_user.id and current_user not in project.team_members:
-        flash('You do not have access to this code room.', 'danger')
-        return redirect(url_for('home'))
-    
-    return render_template('project/code_room.html', room=room, project=project)
+    try:
+        room = CodeRoom.query.get_or_404(room_id)
+        project = Project.query.get(room.project_id)
+        
+        # Check if user has access to this project
+        if project.owner_id != current_user.id and current_user not in project.team_members:
+            flash('You do not have access to this code room.', 'danger')
+            return redirect(url_for('home'))
+        
+        # Log page access for debugging
+        app.logger.info(f"User {current_user.id} accessing code room {room_id}")
+        app.logger.debug(f"Room content length: {len(room.content or '')}")
+        
+        return render_template('project/code_room.html', room=room, project=project)
+    except Exception as e:
+        app.logger.error(f"Error accessing code room {room_id}: {str(e)}")
+        flash('An error occurred while loading the code room.', 'danger')
+        return redirect(url_for('my_projects'))
 
+@csrf.exempt
 @app.route('/save/<room_id>', methods=['POST'])
 @login_required
-@csrf.exempt
 def save_code(room_id):
     try:
         room = CodeRoom.query.get_or_404(room_id)
         project = Project.query.get(room.project_id)
         
-        if not project:
-            return jsonify({"error": "Project not found"}), 404
-            
-        if not (project.owner_id == current_user.id or 
-                current_user in project.team_members):
+        # Check if user has access to this project
+        if project.owner_id != current_user.id and current_user not in project.team_members:
             return jsonify({"error": "Access denied"}), 403
-
+        
         data = request.get_json()
         if not data:
-            return jsonify({"error": "Invalid request format"}), 400
-
-        code = data.get('code')
-        if code is None:
-            return jsonify({"error": "Missing code parameter"}), 400
-
+            return jsonify({"error": "No data received"}), 400
+            
+        code = data.get('code', '')
+        
+        # Update the room content
         room.content = code
         room.updated_at = datetime.utcnow()
+        db.session.commit()
         
-        try:
-            db.session.commit()
-            return jsonify({"status": "saved"})
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f"Database error: {str(e)}")
-            return jsonify({"error": "Database save failed"}), 500
-            
+        # Log successful save
+        app.logger.info(f"Code saved for room {room_id} by user {current_user.id}")
+        
+        return jsonify({"status": "saved"})
     except Exception as e:
-        current_app.logger.error(f"Unexpected error: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
+        # Log the error
+        app.logger.error(f"Error saving code for room {room_id}: {str(e)}")
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/code/<room_id>/language', methods=['POST'])
@@ -698,50 +814,68 @@ def update_language(room_id):
 # Socket.IO event handlers
 @socketio.on('join')
 def handle_join(data):
-    room = data['room']
-    user_id = data['user_id']
-    username = data['username']
-    sid = request.sid
-    
-    join_room(room)
-    
-    # Store user information with their session ID
-    if room not in active_users:
-        active_users[room] = {}
-    
-    active_users[room][sid] = {
-        'user_id': user_id,
-        'username': username
-    }
-    
-    user_list = [
-        {'user_id': details['user_id'], 'username': details['username']}
-        for details in active_users[room].values()
-    ]
-    
-    emit('active_users', user_list, to=room)
+    try:
+        room = data['room']
+        user_id = data['user_id']
+        username = data['username']
+        sid = request.sid
+        
+        join_room(room)
+        app.logger.info(f"User {user_id} joined room {room}")
+        
+        # Store user information with their session ID
+        if room not in active_users:
+            active_users[room] = {}
+        
+        active_users[room][sid] = {
+            'user_id': user_id,
+            'username': username
+        }
+        
+        user_list = [
+            {'user_id': details['user_id'], 'username': details['username']}
+            for details in active_users[room].values()
+        ]
+        
+        emit('active_users', user_list, to=room)
+    except Exception as e:
+        app.logger.error(f"Error in handle_join: {str(e)}")
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    sid = request.sid
-    room_to_leave = None
-    
-    for room, users in active_users.items():
-        if sid in users:
-            room_to_leave = room
-            user_details = users[sid]
-            del users[sid]
-            
-            user_list = [
-                {'user_id': details['user_id'], 'username': details['username']}
-                for details in users.values()
-            ]
-            
-            emit('active_users', user_list, to=room)
-            break
-    
-    if room_to_leave:
-        leave_room(room_to_leave)
+    try:
+        sid = request.sid
+        room_to_leave = None
+        
+        for room, users in active_users.items():
+            if sid in users:
+                room_to_leave = room
+                user_details = users[sid]
+                del users[sid]
+                
+                app.logger.info(f"User {user_details['user_id']} disconnected from room {room}")
+                
+                user_list = [
+                    {'user_id': details['user_id'], 'username': details['username']}
+                    for details in users.values()
+                ]
+                
+                emit('active_users', user_list, to=room)
+                break
+        
+        if room_to_leave:
+            leave_room(room_to_leave)
+    except Exception as e:
+        app.logger.error(f"Error in handle_disconnect: {str(e)}")
+
+@socketio.on('code_change')
+def handle_code_change(data):
+    try:
+        room = data['room']
+        code = data['code']
+        emit('code_update', code, to=room, include_self=False)
+    except Exception as e:
+        app.logger.error(f"Error in handle_code_change: {str(e)}")
 
 @app.route('/code/<room_id>/delete', methods=['POST'])
 @login_required
@@ -768,11 +902,6 @@ def delete_code_room(room_id):
     flash('Code room deleted successfully.', 'success')
     return redirect(url_for('project_code_rooms', project_id=project_id))
 
-@socketio.on('code_change')
-def handle_code_change(data):
-    room = data['room']
-    code = data['code']
-    emit('code_update', code, to=room, include_self=False)
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():

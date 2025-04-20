@@ -536,9 +536,11 @@
                     </div>
                     <div class="actions">
                         <form method="POST" action="{{ url_for('handle_friend_request', request_id=req.id, action='accept') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-primary">Accept</button>
                         </form>
                         <form method="POST" action="{{ url_for('handle_friend_request', request_id=req.id, action='decline') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-outline">Decline</button>
                         </form>
                     </div>

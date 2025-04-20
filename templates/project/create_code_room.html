@@ -5,6 +5,7 @@
     <h1>Create Code Room for {{ project.title }}</h1>
     
     <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="mb-3">
             <label for="language" class="form-label">Programming Language</label>
             <select class="form-select" id="language" name="language">

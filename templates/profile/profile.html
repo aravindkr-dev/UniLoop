@@ -3,686 +3,433 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.10.3/cdn.min.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <title>{{ user.first_name }}'s Profile - CollegeHub</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
-        /* Custom CSS */
         :root {
-            --primary: #4f46e5;
-            --primary-light: #6366f1;
-            --primary-dark: #4338ca;
-            --secondary: #10b981;
-            --gray-50: #f9fafb;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-300: #d1d5db;
-            --gray-400: #9ca3af;
-            --gray-500: #6b7280;
-            --gray-600: #4b5563;
-            --gray-700: #374151;
-            --gray-800: #1f2937;
-            --gray-900: #111827;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #10b981;
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --text-color: #333;
+            --light-text: #666;
+            --bg-color: #f8f9fa;
+            --card-bg: #fff;
+            --border-color: #e0e0e0;
         }
-
-        * {
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         }
-
-        body {
-            background-color: var(--gray-50);
-            color: var(--gray-800);
-            line-height: 1.5;
-        }
-
+        
         .container {
-            width: 100%;
             max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1.5rem;
+            margin: 20px auto;
+            padding: 0 20px;
         }
-
-        .header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            padding: 1.25rem 0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .header-container {
+        
+        .profile-header {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            position: relative;
+            margin-bottom: 30px;
         }
-
-        .logo {
-            font-size: 1.5rem;
+        
+        .cover-photo {
+            height: 200px;
+            border-radius: 12px 12px 0 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            margin: -30px -30px 0;
+        }
+        
+        .profile-content {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: -50px;
+        }
+        
+        .profile-img-container {
+            width: 150px;
+            height: 150px;
+            margin-right: 30px;
+            margin-left: 30px;
+            position: relative;
+        }
+        
+        .profile-img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 5px solid white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            object-fit: cover;
+        }
+        
+        .profile-info {
+            flex: 1;
+            min-width: 300px;
+            padding-top: 60px;
+        }
+        
+        .profile-name {
+            font-size: 28px;
             font-weight: 700;
-            letter-spacing: -0.025em;
+            margin: 0 0 5px 0;
         }
-
-        .header-buttons {
+        
+        .profile-college {
+            font-size: 16px;
+            color: var(--light-text);
+            margin: 0 0 10px 0;
+        }
+        
+        .edit-profile-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            position: absolute;
+            top: 220px;
+            right: 30px;
+        }
+        
+        .edit-profile-btn:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .social-links {
             display: flex;
-            gap: 0.75rem;
+            gap: 15px;
+            margin-top: 15px;
         }
-
-        .btn {
-            display: inline-flex;
+        
+        .social-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            font-weight: 500;
-            font-size: 0.875rem;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            border: none;
-            outline: none;
+            background-color: #f1f2f3;
+            border-radius: 50%;
+            color: var(--primary-color);
+            transition: all 0.3s;
         }
-
-        .btn-white {
-            background-color: white;
-            color: var(--primary);
-        }
-
-        .btn-white:hover {
-            background-color: rgba(255, 255, 255, 0.9);
-        }
-
-        .btn-primary {
-            background-color: var(--primary);
+        
+        .social-icon:hover {
+            background-color: var(--primary-color);
             color: white;
         }
-
-        .btn-primary:hover {
-            background-color: var(--primary-dark);
+        
+        .profile-sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
         }
-
-        .btn-secondary {
-            background-color: var(--gray-200);
-            color: var(--gray-800);
+        
+        .section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
         }
-
-        .btn-secondary:hover {
-            background-color: var(--gray-300);
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--primary-color);
         }
-
-        .btn-danger {
-            color: var(--danger);
-            background-color: transparent;
+        
+        .about-text {
+            line-height: 1.6;
+            color: var(--light-text);
         }
-
-        .btn-danger:hover {
-            background-color: rgba(239, 68, 68, 0.1);
-        }
-
-        .btn-sm {
-            padding: 0.25rem 0.75rem;
-            font-size: 0.75rem;
-        }
-
-        .main {
-            padding: 2rem 0;
-        }
-
-        .card {
-            background-color: white;
-            border-radius: 0.5rem;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            overflow: hidden;
-            margin-bottom: 1.5rem;
-            transition: box-shadow 0.3s ease;
-        }
-
-        .card:hover {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-
-        .card-header {
-            padding: 1.25rem;
-            border-bottom: 1px solid var(--gray-200);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .card-body {
-            padding: 1.25rem;
-        }
-
-        .tabs {
-            display: flex;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid var(--gray-200);
-            position: relative;
-        }
-
-        .tab {
-            padding: 0.75rem 1.25rem;
-            font-weight: 500;
-            color: var(--gray-500);
-            cursor: pointer;
-            transition: color 0.2s ease;
-            position: relative;
-        }
-
-        .tab.active {
-            color: var(--primary);
-        }
-
-        .tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background-color: var(--primary);
-        }
-
-        .tab:hover:not(.active) {
-            color: var(--gray-700);
-        }
-
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            font-size: 0.875rem;
-            color: var(--gray-700);
-        }
-
-        .form-control {
-            display: block;
-            width: 100%;
-            padding: 0.625rem 0.75rem;
-            font-size: 0.875rem;
-            line-height: 1.5;
-            color: var(--gray-700);
-            background-color: #fff;
-            background-clip: padding-box;
-            border: 1px solid var(--gray-300);
-            border-radius: 0.375rem;
-            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-        }
-
-        .form-control:focus {
-            color: var(--gray-700);
-            background-color: #fff;
-            border-color: var(--primary-light);
-            outline: 0;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-        }
-
-        .avatar {
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid white;
-            box-shadow: 0 0 0 2px var(--gray-200);
-        }
-
-        .avatar-lg {
-            width: 96px;
-            height: 96px;
-        }
-
-        .avatar-md {
-            width: 64px;
-            height: 64px;
-        }
-
-        .avatar-sm {
-            width: 40px;
-            height: 40px;
-        }
-
-        .profile-cover {
-            height: 200px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            position: relative;
-        }
-
-        .profile-avatar-wrapper {
-            position: absolute;
-            bottom: -48px;
-            left: 2rem;
-        }
-
-        .profile-info {
-            padding-top: 60px;
-            padding-left: 2rem;
-            padding-right: 2rem;
-            padding-bottom: 2rem;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.25rem 0.5rem;
-            font-size: 0.75rem;
-            font-weight: 500;
-            line-height: 1;
-            border-radius: 9999px;
-            letter-spacing: 0.025em;
-        }
-
-        .badge-primary {
-            background-color: rgba(79, 70, 229, 0.1);
-            color: var(--primary);
-        }
-
-        .badge-success {
-            background-color: rgba(16, 185, 129, 0.1);
-            color: var(--success);
-        }
-
-        .badge-warning {
-            background-color: rgba(245, 158, 11, 0.1);
-            color: var(--warning);
-        }
-
+        
         .skills-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.5rem;
-            padding: 0.75rem;
-            border: 1px solid var(--gray-200);
-            border-radius: 0.375rem;
-            min-height: 100px;
+            gap: 10px;
         }
-
+        
         .skill-tag {
-            display: inline-flex;
-            align-items: center;
-            background-color: rgba(79, 70, 229, 0.1);
-            color: var(--primary);
-            border-radius: 9999px;
-            padding: 0.35rem 0.75rem;
-            font-size: 0.75rem;
-            font-weight: 500;
+            background-color: #e7efff;
+            color: var(--primary-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
         }
-
-        .skill-tag button {
-            background: none;
-            border: none;
-            color: inherit;
-            margin-left: 0.25rem;
-            cursor: pointer;
-            font-size: 1rem;
-            line-height: 1;
-        }
-
-        .skill-input {
-            border: none;
-            outline: none;
-            flex-grow: 1;
-            padding: 0.35rem 0;
-            min-width: 120px;
-        }
-
+        
         .project-card {
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            background-color: white;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: transform 0.3s, box-shadow 0.3s;
         }
-
+        
         .project-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
         }
-
-        .connection-item {
+        
+        .project-title {
+            font-weight: 600;
+            margin: 0 0 5px 0;
+            font-size: 16px;
+        }
+        
+        .project-desc {
+            font-size: 14px;
+            color: var(--light-text);
+            margin: 0 0 10px 0;
+        }
+        
+        .project-links {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .project-link {
+            font-size: 13px;
+            color: var(--primary-color);
+            text-decoration: none;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 1rem;
-            border: 1px solid var(--gray-200);
-            border-radius: 0.5rem;
-            transition: background-color 0.2s ease;
+            gap: 5px;
         }
-
-        .connection-item:hover {
-            background-color: var(--gray-50);
+        
+        .project-link:hover {
+            text-decoration: underline;
         }
-
-        .grid {
-            display: grid;
-            gap: 1.5rem;
+        
+        .teammate {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
         }
-
-        .grid-cols-1 {
-            grid-template-columns: repeat(1, minmax(0, 1fr));
+        
+        .teammate-img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
         }
-
-        @media (min-width: 768px) {
-            .grid-cols-md-2 {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+        
+        .teammate-name {
+            font-size: 14px;
+        }
+        
+        .education-item {
+            margin-bottom: 15px;
+        }
+        
+        .college-name {
+            font-weight: 600;
+            margin: 0 0 5px 0;
+        }
+        
+        .college-details {
+            font-size: 14px;
+            color: var(--light-text);
+        }
+        
+        @media (max-width: 992px) {
+            .profile-sections {
+                grid-template-columns: 1fr;
             }
         }
-
-        .flex {
-            display: flex;
-        }
-
-        .items-center {
-            align-items: center;
-        }
-
-        .justify-between {
-            justify-content: space-between;
-        }
-
-        .space-x-2 > * + * {
-            margin-left: 0.5rem;
-        }
-
-        .space-x-4 > * + * {
-            margin-left: 1rem;
-        }
-
-        .space-y-4 > * + * {
-            margin-top: 1rem;
-        }
-
-        .modal-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-        }
-
-        .modal {
-            background-color: white;
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            width: 100%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-
-        .checkbox-wrapper {
-            display: flex;
-            align-items: center;
-        }
-
-        .checkbox {
-            width: 1rem;
-            height: 1rem;
-            border-radius: 0.25rem;
-            border: 1px solid var(--gray-300);
-            appearance: none;
-            background-color: white;
-            margin-right: 0.5rem;
-            cursor: pointer;
-        }
-
-        .checkbox:checked {
-            background-color: var(--primary);
-            border-color: var(--primary);
-        }
-
-        .text-danger {
-            color: var(--danger);
-        }
-
-        .border-bottom {
-            border-bottom: 1px solid var(--gray-200);
-            padding-bottom: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .search-wrapper {
-            position: relative;
-            margin-bottom: 1.5rem;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 0.75rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray-400);
-        }
-
-        .search-input {
-            padding-left: 2.5rem;
-            width: 100%;
-        }
-
-        /* Cropper modal styles */
-        .cropper-container {
-            max-height: 350px;
-            overflow: hidden;
+        
+        @media (max-width: 768px) {
+            .profile-content {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .profile-img-container {
+                margin-right: 0;
+                margin-left: 0;
+            }
+            
+            .profile-info {
+                padding-top: 20px;
+            }
+            
+            .social-links {
+                justify-content: center;
+            }
+            
+            .edit-profile-btn {
+                position: static;
+                margin-top: 20px;
+            }
         }
     </style>
 </head>
-<body x-data="{
-    activeTab: 'profile',
-    isEditing: false,
-    showImageCropper: false,
-    newProject: {
-        title: '',
-        description: '',
-        visibility: 'public'
-    },
-    skills: [],
-    addSkill(skill) {
-        if (skill && !this.skills.includes(skill)) {
-            this.skills.push(skill);
-            this.$refs.skillInput.value = '';
-        }
-    },
-    removeSkill(index) {
-        this.skills.splice(index, 1);
-    },
-    initSkills() {
-        const skillsString = '{{ current_user.skills }}';
-        if (skillsString) {
-            this.skills = skillsString.split(',').map(s => s.trim());
-        }
-    }
-}" x-init="initSkills()">
-    <!-- Header -->
-    <header class="header">
-        <div class="container header-container">
-            <div class="logo">Student Connect</div>
-            <div class="header-buttons">
-                <button class="btn btn-white btn-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                    </svg>
-                    Messages
-                </button>
-                <button class="btn btn-white btn-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" />
-                    </svg>
-                    Logout
-                </button>
+<body>
+    <!-- Include your header/navigation here -->
+    
+    <div class="container">
+        <div class="profile-header">
+            <div class="cover-photo"></div>
+            <div class="profile-content">
+                <div class="profile-img-container">
+                    {% if user.profile_picture %}
+                        <img class="profile-img" src="{{ url_for('static', filename='uploads/' + user.profile_picture) }}" alt="{{ user.first_name }}'s profile">
+                    {% else %}
+                        <img class="profile-img" src="{{ url_for('static', filename='img/default-profile.png') }}" alt="Default profile">
+                    {% endif %}
+                </div>
+                <div class="profile-info">
+                    <h1 class="profile-name">{{ user.first_name }} {{ user.last_name }}</h1>
+                    <p class="profile-college">{{ user.college or 'No college specified' }}</p>
+                    <div class="social-links">
+                        {% if user.github %}
+                        <a href="{{ user.github }}" target="_blank" class="social-icon">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        {% endif %}
+                        {% if user.linkedin %}
+                        <a href="{{ user.linkedin }}" target="_blank" class="social-icon">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        {% endif %}
+                        <a href="mailto:{{ user.email }}" class="social-icon">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% if current_user.id == user.id %}
+            <a href="{{ url_for('edit_profile') }}" class="edit-profile-btn">
+                <i class="fas fa-edit"></i> Edit Profile
+            </a>
+            {% endif %}
+        </div>
+        
+        <div class="profile-sections">
+            <div class="left-column">
+                <div class="section">
+                    <h2 class="section-title">About Me</h2>
+                    <p class="about-text">{{ user.bio or 'No bio yet.' }}</p>
+                </div>
+                
+                <div class="section">
+                    <h2 class="section-title">Skills</h2>
+                    <div class="skills-container">
+                        {% if user.skills %}
+                            {% for skill in user.get_skills_list() %}
+                                <span class="skill-tag">{{ skill }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <p>No skills added yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2 class="section-title">Education</h2>
+                    <div class="education-item">
+                        <h3 class="college-name">{{ user.college or 'No college specified' }}</h3>
+                        <p class="college-details">Add more education details in your profile settings</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-column">
+                <div class="section">
+                    <h2 class="section-title">Projects</h2>
+                    {% if user_projects %}
+                        {% for project in user_projects %}
+                            <div class="project-card">
+                                <h3 class="project-title">{{ project.title }}</h3>
+                                <p class="project-desc">{{ project.description|truncate(100) }}</p>
+                                <div class="project-links">
+                                    {% if project.github_url %}
+                                    <a href="{{ project.github_url }}" target="_blank" class="project-link">
+                                        <i class="fab fa-github"></i> GitHub
+                                    </a>
+                                    {% endif %}
+                                    {% if project.demo_url %}
+                                    <a href="{{ project.demo_url }}" target="_blank" class="project-link">
+                                        <i class="fas fa-external-link-alt"></i> Demo
+                                    </a>
+                                    {% endif %}
+                                    <a href="{{ url_for('project_page', project_id=project.id) }}" class="project-link">
+                                        <i class="fas fa-info-circle"></i> Details
+                                    </a>
+                                </div>
+                                {% if project.team_members %}
+                                <div class="project-team">
+                                    <p style="font-size: 13px; margin-top: 10px; margin-bottom: 5px;">Team:</p>
+                                    {% for member in project.team_members[:3] %}
+                                    <div class="teammate">
+                                        {% if member.profile_picture %}
+                                            <img class="teammate-img" src="{{ url_for('static', filename='uploads/' + member.profile_picture) }}" alt="{{ member.first_name }}">
+                                        {% else %}
+                                            <img class="teammate-img" src="{{ url_for('static', filename='img/default-profile.png') }}" alt="Default profile">
+                                        {% endif %}
+                                        <span class="teammate-name">{{ member.first_name }} {{ member.last_name }}</span>
+                                    </div>
+                                    {% endfor %}
+                                    {% if project.team_members|length > 3 %}
+                                    <p style="font-size: 13px; margin-top: 5px;">+ {{ project.team_members|length - 3 }} more</p>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No projects yet.</p>
+                    {% endif %}
+                </div>
+                
+                <div class="section">
+                    <h2 class="section-title">Friends</h2>
+                    <!-- You'll need to implement the friends list here -->
+                    <div id="friends-list">
+                        {% if friends_list %}
+                            {% for friend in friends_list %}
+                            <div class="teammate">
+                                {% if friend.profile_picture %}
+                                    <img class="teammate-img" src="{{ url_for('static', filename='uploads/' + friend.profile_picture) }}" alt="{{ friend.first_name }}">
+                                {% else %}
+                                    <img class="teammate-img" src="{{ url_for('static', filename='img/default-profile.png') }}" alt="Default profile">
+                                {% endif %}
+                                <a href="{{ url_for('profile', user_id=friend.id) }}" class="teammate-name">{{ friend.first_name }} {{ friend.last_name }}</a>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p>No friends yet.</p>
+                            <a href="{{ url_for('search_friends') }}" class="project-link" style="margin-top: 10px; display: inline-block;">
+                                <i class="fas fa-user-plus"></i> Find Friends
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="main">
-        <div class="container">
-            <!-- Tabs -->
-            <div class="tabs">
-                <div @click="activeTab = 'profile'" 
-                     :class="activeTab === 'profile' ? 'tab active' : 'tab'">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                    </svg>
-                    Profile
-                </div>
-                <div @click="activeTab = 'projects'" 
-                     :class="activeTab === 'projects' ? 'tab active' : 'tab'">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd" />
-                        <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z" />
-                    </svg>
-                    Projects
-                </div>
-                <div @click="activeTab = 'connections'" 
-                     :class="activeTab === 'connections' ? 'tab active' : 'tab'">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
-                    </svg>
-                    Connections
-                </div>
-                <div @click="activeTab = 'settings'" 
-                     :class="activeTab === 'settings' ? 'tab active' : 'tab'">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
-                    </svg>
-                    Settings
-                </div>
-            </div>
-
-            <!-- Profile Tab -->
-            <div x-show="activeTab === 'profile'">
-                <!-- View Mode -->
-                <div x-show="!isEditing" class="card">
-                    <!-- Profile Cover & Avatar -->
-                    <div class="profile-cover">
-                        <div class="profile-avatar-wrapper">
-                            <img src="{{ url_for('static', filename='uploads/' + (current_user.profile_picture if current_user.profile_picture else 'default.jpg')) }}" 
-                                 alt="Profile Picture" class="avatar avatar-lg">
-                        </div>
-                    </div>
-                    
-                    <div class="profile-info">
-                        <div class="flex justify-between items-center mb-4">
-                            <div>
-                                <h2 class="text-2xl font-bold">{{ current_user.first_name }} {{ current_user.last_name }}</h2>
-                                <p class="text-gray-500">{{ current_user.college or 'No college listed' }}</p>
-                            </div>
-                            <button @click="isEditing = true" class="btn btn-primary">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                </svg>
-                                Edit Profile
-                            </button>
-                        </div>
-                        
-                        <div class="border-bottom">
-                            <h3 class="font-semibold text-gray-700 mb-2">Bio</h3>
-                            <p class="text-gray-600">{{ current_user.bio or 'Tell others about yourself by adding a bio.' }}</p>
-                        </div>
-                        
-                        <div>
-                            <h3 class="font-semibold text-gray-700 mb-2">Skills</h3>
-                            <div class="flex flex-wrap gap-2">
-                                <template x-for="skill in skills" :key="skill">
-                                    <span class="badge badge-primary" x-text="skill"></span>
-                                </template>
-                                <span x-show="skills.length === 0" class="text-gray-500 text-sm">Add skills to showcase your expertise.</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Edit Mode -->
-                <div x-show="isEditing" class="card">
-                    <div class="card-header">
-                        <h2 class="text-xl font-bold">Edit Profile</h2>
-                        <button @click="isEditing = false" class="text-gray-400 hover:text-gray-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    <div class="card-body">
-                        <form method="POST" enctype="multipart/form-data">
-                            <!-- Profile Picture -->
-                            <div class="form-group">
-                                <label class="form-label">Profile Picture</label>
-                                <div class="flex items-center space-x-4">
-                                    <img src="{{ url_for('static', filename='uploads/' + (current_user.profile_picture if current_user.profile_picture else 'default.jpg')) }}" 
-                                         class="avatar avatar-md" alt="Profile Picture">
-                                    <div>
-                                        <button type="button" @click="showImageCropper = true" class="btn btn-secondary btn-sm">
-                                            Choose new image
-                                        </button>
-                                        <input type="file" name="profile_picture" class="hidden" id="profile-upload">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-md-2 gap-4">
-                                <div class="form-group">
-                                    <label class="form-label">First Name</label>
-                                    <input type="text" name="first_name" value="{{ current_user.first_name }}"
-                                        class="form-control" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label class="form-label">Last Name</label>
-                                    <input type="text" name="last_name" value="{{ current_user.last_name }}"
-                                        class="form-control" required>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">College/University</label>
-                                <input type="text" name="college" value="{{ current_user.college }}"
-                                    class="form-control">
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Skills</label>
-                                <div class="skills-container">
-                                    <template x-for="(skill, index) in skills" :key="index">
-                                        <span class="skill-tag">
-                                            <span x-text="skill"></span>
-                                            <button type="button" @click="removeSkill(index)">×</button>
-                                        </span>
-                                    </template>
-                                    <input type="text" x-ref="skillInput" 
-                                        @keydown.enter.prevent="addSkill($event.target.value)"
-                                        placeholder="Type a skill and press Enter" 
-                                        class="skill-input">
-                                    <input type="hidden" name="skills" x-bind:value="skills.join(',')">
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Bio</label>
-                                <textarea name="bio" rows="4" 
-                                    class="form-control">{{ current_user.bio }}</textarea>
-                            </div>
-
-                            <div class="flex justify-end space-x-2">
-                                <button type="button" @click="isEditing = false"
-                                    class="btn btn-secondary">
-                                    Cancel
-                                </button>
-                                <button type="submit" class="btn btn-primary">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h1a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h1v5.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L9 11.586V
+    </div>
+    
+    <!-- Include your footer here -->
+    
+    <script>
+        // Add any JavaScript functionality here
+    </script>
+</body>
+</html>
