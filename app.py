@@ -40,7 +40,7 @@ login_manager.login_message_category = 'info'
 
 
 # Make sure you have CORS properly set up if needed
-socketio = SocketIO(app, cors_allowed_origins="*")  # For development, restrict in production
+socketio = SocketIO(app)  # For development, restrict in production
 
 # Dictionary to track active users in each room
 active_users = {}
@@ -366,7 +366,6 @@ def edit_profile():
         return redirect(url_for('profile'))
 
     return render_template('settings.html')
-
 
 
 @app.route('/profile', methods=['GET', 'POST'])

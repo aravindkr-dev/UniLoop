@@ -3,433 +3,268 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ user.first_name }}'s Profile - CollegeHub</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <title>{{ user.first_name }}'s Profile | DevConnect</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --accent-color: #4895ef;
-            --text-color: #333;
-            --light-text: #666;
-            --bg-color: #f8f9fa;
-            --card-bg: #fff;
-            --border-color: #e0e0e0;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 0 20px;
-        }
-        
         .profile-header {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            margin-bottom: 30px;
+            padding: 30px 0;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
         }
-        
-        .cover-photo {
-            height: 200px;
-            border-radius: 12px 12px 0 0;
-            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-            margin: -30px -30px 0;
-        }
-        
-        .profile-content {
-            display: flex;
-            flex-wrap: wrap;
-            margin-top: -50px;
-        }
-        
-        .profile-img-container {
-            width: 150px;
-            height: 150px;
-            margin-right: 30px;
-            margin-left: 30px;
-            position: relative;
-        }
-        
-        .profile-img {
+        .profile-picture {
             width: 150px;
             height: 150px;
             border-radius: 50%;
-            border: 5px solid white;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             object-fit: cover;
+            border: 5px solid #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        
+        .profile-details {
+            padding: 20px 0;
+        }
+        .profile-bio {
+            margin-bottom: 20px;
+        }
         .profile-info {
-            flex: 1;
-            min-width: 300px;
-            padding-top: 60px;
-        }
-        
-        .profile-name {
-            font-size: 28px;
-            font-weight: 700;
-            margin: 0 0 5px 0;
-        }
-        
-        .profile-college {
-            font-size: 16px;
-            color: var(--light-text);
-            margin: 0 0 10px 0;
-        }
-        
-        .edit-profile-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 20px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            position: absolute;
-            top: 220px;
-            right: 30px;
-        }
-        
-        .edit-profile-btn:hover {
-            background-color: var(--secondary-color);
-        }
-        
-        .social-links {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
-        }
-        
-        .social-icon {
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #f1f2f3;
-            border-radius: 50%;
-            color: var(--primary-color);
-            transition: all 0.3s;
-        }
-        
-        .social-icon:hover {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .profile-sections {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-        
-        .section {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-            margin-bottom: 30px;
-        }
-        
-        .section-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin: 0 0 20px 0;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--primary-color);
-        }
-        
-        .about-text {
-            line-height: 1.6;
-            color: var(--light-text);
-        }
-        
-        .skills-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .skill-tag {
-            background-color: #e7efff;
-            color: var(--primary-color);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-        }
-        
-        .project-card {
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        
-        .project-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .project-title {
-            font-weight: 600;
-            margin: 0 0 5px 0;
-            font-size: 16px;
-        }
-        
-        .project-desc {
-            font-size: 14px;
-            color: var(--light-text);
-            margin: 0 0 10px 0;
-        }
-        
-        .project-links {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .project-link {
-            font-size: 13px;
-            color: var(--primary-color);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .project-link:hover {
-            text-decoration: underline;
-        }
-        
-        .teammate {
-            display: flex;
-            align-items: center;
             margin-bottom: 10px;
         }
-        
-        .teammate-img {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            margin-right: 10px;
-            object-fit: cover;
+        .skill-badge {
+            background-color: #e9ecef;
+            color: #495057;
+            border-radius: 20px;
+            padding: 5px 15px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            display: inline-block;
         }
-        
-        .teammate-name {
-            font-size: 14px;
+        .social-link {
+            font-size: 18px;
+            margin-right: 15px;
+            color: #6c757d;
         }
-        
-        .education-item {
+        .social-link:hover {
+            color: #0d6efd;
+        }
+        .friend-card {
             margin-bottom: 15px;
         }
-        
-        .college-name {
-            font-weight: 600;
-            margin: 0 0 5px 0;
+        .friend-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
         }
-        
-        .college-details {
-            font-size: 14px;
-            color: var(--light-text);
+        .project-card {
+            height: 100%;
+            transition: transform 0.3s;
         }
-        
-        @media (max-width: 992px) {
-            .profile-sections {
-                grid-template-columns: 1fr;
-            }
+        .project-card:hover {
+            transform: translateY(-5px);
         }
-        
-        @media (max-width: 768px) {
-            .profile-content {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-            }
-            
-            .profile-img-container {
-                margin-right: 0;
-                margin-left: 0;
-            }
-            
-            .profile-info {
-                padding-top: 20px;
-            }
-            
-            .social-links {
-                justify-content: center;
-            }
-            
-            .edit-profile-btn {
-                position: static;
-                margin-top: 20px;
-            }
+        .message-btn {
+            margin-left: 10px;
         }
     </style>
 </head>
 <body>
-    <!-- Include your header/navigation here -->
+    <!-- Navigation will be included from base template -->
     
-    <div class="container">
+    <div class="container mt-4">
         <div class="profile-header">
-            <div class="cover-photo"></div>
-            <div class="profile-content">
-                <div class="profile-img-container">
+            <div class="row align-items-center">
+                <div class="col-md-3 text-center">
                     {% if user.profile_picture %}
-                        <img class="profile-img" src="{{ url_for('static', filename='uploads/' + user.profile_picture) }}" alt="{{ user.first_name }}'s profile">
+                        <img src="{{ url_for('static', filename='uploads/' + user.profile_picture) }}" alt="Profile Picture" class="profile-picture">
                     {% else %}
-                        <img class="profile-img" src="{{ url_for('static', filename='img/default-profile.png') }}" alt="Default profile">
+                        <img src="{{ url_for('static', filename='img/default_profile.png') }}" alt="Default Profile" class="profile-picture">
                     {% endif %}
                 </div>
-                <div class="profile-info">
-                    <h1 class="profile-name">{{ user.first_name }} {{ user.last_name }}</h1>
-                    <p class="profile-college">{{ user.college or 'No college specified' }}</p>
-                    <div class="social-links">
-                        {% if user.github %}
-                        <a href="{{ user.github }}" target="_blank" class="social-icon">
-                            <i class="fab fa-github"></i>
-                        </a>
+                <div class="col-md-9">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h1>{{ user.first_name }} {{ user.last_name }}</h1>
+                        <div>
+                            {% if is_own_profile %}
+                                <a href="{{ url_for('settings') }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-cog"></i> Edit Profile
+                                </a>
+                            {% else %}
+                                <!-- Check if user is already a friend -->
+                                {% if user in friends_list %}
+                                    <button class="btn btn-success" disabled>
+                                        <i class="fas fa-check"></i> Friends
+                                    </button>
+                                {% else %}
+                                    <a href="{{ url_for('send_friend_request', user_id=user.id) }}" class="btn btn-primary">
+                                        <i class="fas fa-user-plus"></i> Add Friend
+                                    </a>
+                                {% endif %}
+                                <a href="{{ url_for('conversation', user_id=user.id) }}" class="btn btn-outline-primary message-btn">
+                                    <i class="fas fa-envelope"></i> Message
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        {% if user.college %}
+                            <span class="badge bg-light text-dark me-2">
+                                <i class="fas fa-university"></i> {{ user.college }}
+                            </span>
                         {% endif %}
-                        {% if user.linkedin %}
-                        <a href="{{ user.linkedin }}" target="_blank" class="social-icon">
-                            <i class="fab fa-linkedin-in"></i>
-                        </a>
-                        {% endif %}
-                        <a href="mailto:{{ user.email }}" class="social-icon">
-                            <i class="fas fa-envelope"></i>
-                        </a>
+                        
+                        <div class="mt-2">
+                            {% if user.github %}
+                                <a href="{{ user.github }}" target="_blank" class="social-link">
+                                    <i class="fab fa-github"></i>
+                                </a>
+                            {% endif %}
+                            
+                            {% if user.linkedin %}
+                                <a href="{{ user.linkedin }}" target="_blank" class="social-link">
+                                    <i class="fab fa-linkedin"></i>
+                                </a>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
-            {% if current_user.id == user.id %}
-            <a href="{{ url_for('edit_profile') }}" class="edit-profile-btn">
-                <i class="fas fa-edit"></i> Edit Profile
-            </a>
-            {% endif %}
         </div>
         
-        <div class="profile-sections">
-            <div class="left-column">
-                <div class="section">
-                    <h2 class="section-title">About Me</h2>
-                    <p class="about-text">{{ user.bio or 'No bio yet.' }}</p>
-                </div>
-                
-                <div class="section">
-                    <h2 class="section-title">Skills</h2>
-                    <div class="skills-container">
-                        {% if user.skills %}
-                            {% for skill in user.get_skills_list() %}
-                                <span class="skill-tag">{{ skill }}</span>
-                            {% endfor %}
-                        {% else %}
-                            <p>No skills added yet.</p>
-                        {% endif %}
+        <div class="row mt-4">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>About</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="profile-bio">
+                            {% if user.bio %}
+                                <p>{{ user.bio }}</p>
+                            {% else %}
+                                <p class="text-muted">No bio provided.</p>
+                            {% endif %}
+                        </div>
+                        
+                        <h5>Skills</h5>
+                        <div class="mb-3">
+                            {% if user.skills %}
+                                {% for skill in user.skills.split(',') %}
+                                    <span class="skill-badge">{{ skill.strip() }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted">No skills listed.</p>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
                 
-                <div class="section">
-                    <h2 class="section-title">Education</h2>
-                    <div class="education-item">
-                        <h3 class="college-name">{{ user.college or 'No college specified' }}</h3>
-                        <p class="college-details">Add more education details in your profile settings</p>
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3>Projects</h3>
+                        {% if is_own_profile %}
+                            <a href="{{ url_for('create_project') }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus"></i> New Project
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        {% if user_projects %}
+                            <div class="row">
+                                {% for project in user_projects %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card project-card">
+                                            <div class="card-body">
+                                                <h5 class="card-title">{{ project.title }}</h5>
+                                                <p class="card-text text-muted">
+                                                    {{ project.description[:100] }}{% if project.description|length > 100 %}...{% endif %}
+                                                </p>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span class="badge {% if project.visibility == 'public' %}bg-success{% else %}bg-secondary{% endif %}">
+                                                        {{ project.visibility }}
+                                                    </span>
+                                                    <a href="{{ url_for('project_page', project_id=project.id) }}" class="btn btn-sm btn-outline-primary">View</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No projects to display.</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
             
-            <div class="right-column">
-                <div class="section">
-                    <h2 class="section-title">Projects</h2>
-                    {% if user_projects %}
-                        {% for project in user_projects %}
-                            <div class="project-card">
-                                <h3 class="project-title">{{ project.title }}</h3>
-                                <p class="project-desc">{{ project.description|truncate(100) }}</p>
-                                <div class="project-links">
-                                    {% if project.github_url %}
-                                    <a href="{{ project.github_url }}" target="_blank" class="project-link">
-                                        <i class="fab fa-github"></i> GitHub
-                                    </a>
-                                    {% endif %}
-                                    {% if project.demo_url %}
-                                    <a href="{{ project.demo_url }}" target="_blank" class="project-link">
-                                        <i class="fas fa-external-link-alt"></i> Demo
-                                    </a>
-                                    {% endif %}
-                                    <a href="{{ url_for('project_page', project_id=project.id) }}" class="project-link">
-                                        <i class="fas fa-info-circle"></i> Details
-                                    </a>
-                                </div>
-                                {% if project.team_members %}
-                                <div class="project-team">
-                                    <p style="font-size: 13px; margin-top: 10px; margin-bottom: 5px;">Team:</p>
-                                    {% for member in project.team_members[:3] %}
-                                    <div class="teammate">
-                                        {% if member.profile_picture %}
-                                            <img class="teammate-img" src="{{ url_for('static', filename='uploads/' + member.profile_picture) }}" alt="{{ member.first_name }}">
-                                        {% else %}
-                                            <img class="teammate-img" src="{{ url_for('static', filename='img/default-profile.png') }}" alt="Default profile">
-                                        {% endif %}
-                                        <span class="teammate-name">{{ member.first_name }} {{ member.last_name }}</span>
-                                    </div>
-                                    {% endfor %}
-                                    {% if project.team_members|length > 3 %}
-                                    <p style="font-size: 13px; margin-top: 5px;">+ {{ project.team_members|length - 3 }} more</p>
-                                    {% endif %}
-                                </div>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <p>No projects yet.</p>
-                    {% endif %}
-                </div>
-                
-                <div class="section">
-                    <h2 class="section-title">Friends</h2>
-                    <!-- You'll need to implement the friends list here -->
-                    <div id="friends-list">
-                        {% if friends_list %}
-                            {% for friend in friends_list %}
-                            <div class="teammate">
-                                {% if friend.profile_picture %}
-                                    <img class="teammate-img" src="{{ url_for('static', filename='uploads/' + friend.profile_picture) }}" alt="{{ friend.first_name }}">
-                                {% else %}
-                                    <img class="teammate-img" src="{{ url_for('static', filename='img/default-profile.png') }}" alt="Default profile">
-                                {% endif %}
-                                <a href="{{ url_for('profile', user_id=friend.id) }}" class="teammate-name">{{ friend.first_name }} {{ friend.last_name }}</a>
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                            <p>No friends yet.</p>
-                            <a href="{{ url_for('search_friends') }}" class="project-link" style="margin-top: 10px; display: inline-block;">
-                                <i class="fas fa-user-plus"></i> Find Friends
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3>Friends</h3>
+                        {% if is_own_profile %}
+                            <a href="{{ url_for('friends') }}" class="btn btn-sm btn-outline-primary">
+                                View All
                             </a>
                         {% endif %}
                     </div>
+                    <div class="card-body">
+                        {% if friends_list %}
+                            {% for friend in friends_list[:5] %}
+                                <div class="d-flex align-items-center mb-3 friend-card">
+                                    {% if friend.profile_picture %}
+                                        <img src="{{ url_for('static', filename='uploads/' + friend.profile_picture) }}" alt="{{ friend.first_name }}" class="friend-img me-3">
+                                    {% else %}
+                                        <img src="{{ url_for('static', filename='img/default_profile.png') }}" alt="Default Profile" class="friend-img me-3">
+                                    {% endif %}
+                                    <div>
+                                        <a href="{{ url_for('profile', user_id=friend.id) }}" class="text-decoration-none">
+                                            <h6 class="mb-0">{{ friend.first_name }} {{ friend.last_name }}</h6>
+                                        </a>
+                                        {% if friend.college %}
+                                            <small class="text-muted">{{ friend.college }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            
+                            {% if friends_list|length > 5 %}
+                                <div class="text-center mt-3">
+                                    <a href="{{ url_for('friends') }}" class="btn btn-sm btn-outline-secondary">
+                                        See all {{ friends_list|length }} friends
+                                    </a>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <p class="text-muted">No friends to display.</p>
+                        {% endif %}
+                    </div>
                 </div>
+                
+                {% if is_own_profile %}
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h3>Find People</h3>
+                        </div>
+                        <div class="card-body">
+                            <a href="{{ url_for('skill_suggestions') }}" class="btn btn-outline-primary d-block mb-2">
+                                <i class="fas fa-users"></i> People with Similar Skills
+                            </a>
+                            <a href="{{ url_for('find_by_skill') }}" class="btn btn-outline-primary d-block">
+                                <i class="fas fa-search"></i> Search By Skill
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
     
-    <!-- Include your footer here -->
+    <footer class="bg-light py-4 mt-5">
+        <div class="container text-center">
+            <p>&copy; 2025 DevConnect. All rights reserved.</p>
+        </div>
+    </footer>
     
-    <script>
-        // Add any JavaScript functionality here
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
