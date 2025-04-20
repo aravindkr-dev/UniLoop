@@ -1303,13 +1303,3 @@ def suggest_project_teammates(project_id):
         project=project,
         suggested_teammates=suggested_teammates
     )
-
-
-
-
-# Run
-"""if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    socketio.run(app, host = "0.0.0.0")
-"""
