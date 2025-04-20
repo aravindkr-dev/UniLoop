@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Students with "{{ skill }}" skill</h4>
+                        <a href="{{ url_for('find_by_skill') }}" class="btn btn-light btn-sm">
+                            New Search
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if users %}
+                        <div class="list-group">
+                            {% for user in users %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="mb-1">{{ user.first_name }} {{ user.last_name }}</h5>
+                                            <p class="text-muted mb-0">{{ user.college }}</p>
+                                            <small class="text-muted">Skills: {{ user.skills }}</small>
+                                        </div>
+                                        <div class="d-flex">
+                                            <a href="{{ url_for('conversation', user_id=user.id) }}" class="btn btn-sm btn-outline-primary me-2">
+                                                Message
+                                            </a>
+                                            <!-- Add friend button logic -->
+                                            {% if user.id in pending_requests %}
+                                                <button class="btn btn-sm btn-outline-secondary" disabled>Request Sent</button>
+                                            {% elif user.id in friends %}
+                                                <button class="btn btn-sm btn-outline-success" disabled>Friends</button>
+                                            {% else %}
+                                                <a href="{{ url_for('send_friend_request', user_id=user.id) }}" class="btn btn-sm btn-outline-success">
+                                                    Add Friend
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="mb-3">No students found with "{{ skill }}" skill.</p>
+                            <a href="{{ url_for('find_by_skill') }}" class="btn btn-outline-primary">Try another skill</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

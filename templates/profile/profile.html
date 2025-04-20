@@ -2,60 +2,687 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.10.3/cdn.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <style>
+        /* Custom CSS */
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #6366f1;
+            --primary-dark: #4338ca;
+            --secondary: #10b981;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background-color: var(--gray-50);
+            color: var(--gray-800);
+            line-height: 1.5;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 1.25rem 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            outline: none;
+        }
+
+        .btn-white {
+            background-color: white;
+            color: var(--primary);
+        }
+
+        .btn-white:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background-color: var(--gray-200);
+            color: var(--gray-800);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--gray-300);
+        }
+
+        .btn-danger {
+            color: var(--danger);
+            background-color: transparent;
+        }
+
+        .btn-danger:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .main {
+            padding: 2rem 0;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--gray-200);
+            position: relative;
+        }
+
+        .tab {
+            padding: 0.75rem 1.25rem;
+            font-weight: 500;
+            color: var(--gray-500);
+            cursor: pointer;
+            transition: color 0.2s ease;
+            position: relative;
+        }
+
+        .tab.active {
+            color: var(--primary);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--primary);
+        }
+
+        .tab:hover:not(.active) {
+            color: var(--gray-700);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--gray-700);
+        }
+
+        .form-control {
+            display: block;
+            width: 100%;
+            padding: 0.625rem 0.75rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: var(--gray-700);
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.375rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .form-control:focus {
+            color: var(--gray-700);
+            background-color: #fff;
+            border-color: var(--primary-light);
+            outline: 0;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .avatar {
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px var(--gray-200);
+        }
+
+        .avatar-lg {
+            width: 96px;
+            height: 96px;
+        }
+
+        .avatar-md {
+            width: 64px;
+            height: 64px;
+        }
+
+        .avatar-sm {
+            width: 40px;
+            height: 40px;
+        }
+
+        .profile-cover {
+            height: 200px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            position: relative;
+        }
+
+        .profile-avatar-wrapper {
+            position: absolute;
+            bottom: -48px;
+            left: 2rem;
+        }
+
+        .profile-info {
+            padding-top: 60px;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            line-height: 1;
+            border-radius: 9999px;
+            letter-spacing: 0.025em;
+        }
+
+        .badge-primary {
+            background-color: rgba(79, 70, 229, 0.1);
+            color: var(--primary);
+        }
+
+        .badge-success {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .skills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border: 1px solid var(--gray-200);
+            border-radius: 0.375rem;
+            min-height: 100px;
+        }
+
+        .skill-tag {
+            display: inline-flex;
+            align-items: center;
+            background-color: rgba(79, 70, 229, 0.1);
+            color: var(--primary);
+            border-radius: 9999px;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .skill-tag button {
+            background: none;
+            border: none;
+            color: inherit;
+            margin-left: 0.25rem;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .skill-input {
+            border: none;
+            outline: none;
+            flex-grow: 1;
+            padding: 0.35rem 0;
+            min-width: 120px;
+        }
+
+        .project-card {
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            background-color: white;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .connection-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            border: 1px solid var(--gray-200);
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .connection-item:hover {
+            background-color: var(--gray-50);
+        }
+
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-cols-1 {
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+
+        @media (min-width: 768px) {
+            .grid-cols-md-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .space-x-2 > * + * {
+            margin-left: 0.5rem;
+        }
+
+        .space-x-4 > * + * {
+            margin-left: 1rem;
+        }
+
+        .space-y-4 > * + * {
+            margin-top: 1rem;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .modal {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox {
+            width: 1rem;
+            height: 1rem;
+            border-radius: 0.25rem;
+            border: 1px solid var(--gray-300);
+            appearance: none;
+            background-color: white;
+            margin-right: 0.5rem;
+            cursor: pointer;
+        }
+
+        .checkbox:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .text-danger {
+            color: var(--danger);
+        }
+
+        .border-bottom {
+            border-bottom: 1px solid var(--gray-200);
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-wrapper {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+        }
+
+        .search-input {
+            padding-left: 2.5rem;
+            width: 100%;
+        }
+
+        /* Cropper modal styles */
+        .cropper-container {
+            max-height: 350px;
+            overflow: hidden;
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
-    <div class="container mx-auto px-4 py-8 max-w-3xl">
-        <h1 class="text-3xl font-bold mb-6">👤 My Profile</h1>
+<body x-data="{
+    activeTab: 'profile',
+    isEditing: false,
+    showImageCropper: false,
+    newProject: {
+        title: '',
+        description: '',
+        visibility: 'public'
+    },
+    skills: [],
+    addSkill(skill) {
+        if (skill && !this.skills.includes(skill)) {
+            this.skills.push(skill);
+            this.$refs.skillInput.value = '';
+        }
+    },
+    removeSkill(index) {
+        this.skills.splice(index, 1);
+    },
+    initSkills() {
+        const skillsString = '{{ current_user.skills }}';
+        if (skillsString) {
+            this.skills = skillsString.split(',').map(s => s.trim());
+        }
+    }
+}" x-init="initSkills()">
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-container">
+            <div class="logo">Student Connect</div>
+            <div class="header-buttons">
+                <button class="btn btn-white btn-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                    </svg>
+                    Messages
+                </button>
+                <button class="btn btn-white btn-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" />
+                    </svg>
+                    Logout
+                </button>
+            </div>
+        </div>
+    </header>
 
-        <form method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded shadow space-y-4">
-            <!-- Profile Picture -->
-            <div class="flex items-center space-x-4">
-                <img src="{{ url_for('static', filename='uploads/' + (current_user.profile_picture if current_user.profile_picture else 'default.jpg')) }}" 
-     alt="Profile Picture" class="w-20 h-20 rounded-full object-cover border" alt="Profile Picture"/>
-
-                <input type="file" name="profile_picture" class="border p-2 rounded">
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Tabs -->
+            <div class="tabs">
+                <div @click="activeTab = 'profile'" 
+                     :class="activeTab === 'profile' ? 'tab active' : 'tab'">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                    </svg>
+                    Profile
+                </div>
+                <div @click="activeTab = 'projects'" 
+                     :class="activeTab === 'projects' ? 'tab active' : 'tab'">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd" />
+                        <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z" />
+                    </svg>
+                    Projects
+                </div>
+                <div @click="activeTab = 'connections'" 
+                     :class="activeTab === 'connections' ? 'tab active' : 'tab'">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                    </svg>
+                    Connections
+                </div>
+                <div @click="activeTab = 'settings'" 
+                     :class="activeTab === 'settings' ? 'tab active' : 'tab'">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                    </svg>
+                    Settings
+                </div>
             </div>
 
-            <input type="text" name="first_name" value="{{ current_user.first_name }}"
-                   placeholder="First Name" class="w-full border p-2 rounded" required>
+            <!-- Profile Tab -->
+            <div x-show="activeTab === 'profile'">
+                <!-- View Mode -->
+                <div x-show="!isEditing" class="card">
+                    <!-- Profile Cover & Avatar -->
+                    <div class="profile-cover">
+                        <div class="profile-avatar-wrapper">
+                            <img src="{{ url_for('static', filename='uploads/' + (current_user.profile_picture if current_user.profile_picture else 'default.jpg')) }}" 
+                                 alt="Profile Picture" class="avatar avatar-lg">
+                        </div>
+                    </div>
+                    
+                    <div class="profile-info">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <h2 class="text-2xl font-bold">{{ current_user.first_name }} {{ current_user.last_name }}</h2>
+                                <p class="text-gray-500">{{ current_user.college or 'No college listed' }}</p>
+                            </div>
+                            <button @click="isEditing = true" class="btn btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                </svg>
+                                Edit Profile
+                            </button>
+                        </div>
+                        
+                        <div class="border-bottom">
+                            <h3 class="font-semibold text-gray-700 mb-2">Bio</h3>
+                            <p class="text-gray-600">{{ current_user.bio or 'Tell others about yourself by adding a bio.' }}</p>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-semibold text-gray-700 mb-2">Skills</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="skill in skills" :key="skill">
+                                    <span class="badge badge-primary" x-text="skill"></span>
+                                </template>
+                                <span x-show="skills.length === 0" class="text-gray-500 text-sm">Add skills to showcase your expertise.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-            <input type="text" name="last_name" value="{{ current_user.last_name }}"
-                   placeholder="Last Name" class="w-full border p-2 rounded" required>
+                <!-- Edit Mode -->
+                <div x-show="isEditing" class="card">
+                    <div class="card-header">
+                        <h2 class="text-xl font-bold">Edit Profile</h2>
+                        <button @click="isEditing = false" class="text-gray-400 hover:text-gray-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
 
-            <input type="text" name="college" value="{{ current_user.college }}"
-                   placeholder="College Name" class="w-full border p-2 rounded">
+                    <div class="card-body">
+                        <form method="POST" enctype="multipart/form-data">
+                            <!-- Profile Picture -->
+                            <div class="form-group">
+                                <label class="form-label">Profile Picture</label>
+                                <div class="flex items-center space-x-4">
+                                    <img src="{{ url_for('static', filename='uploads/' + (current_user.profile_picture if current_user.profile_picture else 'default.jpg')) }}" 
+                                         class="avatar avatar-md" alt="Profile Picture">
+                                    <div>
+                                        <button type="button" @click="showImageCropper = true" class="btn btn-secondary btn-sm">
+                                            Choose new image
+                                        </button>
+                                        <input type="file" name="profile_picture" class="hidden" id="profile-upload">
+                                    </div>
+                                </div>
+                            </div>
 
-            <input type="text" name="skills" value="{{ current_user.skills }}"
-                   placeholder="Skills (comma-separated)" class="w-full border p-2 rounded">
+                            <div class="grid grid-cols-1 md:grid-cols-md-2 gap-4">
+                                <div class="form-group">
+                                    <label class="form-label">First Name</label>
+                                    <input type="text" name="first_name" value="{{ current_user.first_name }}"
+                                        class="form-control" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Last Name</label>
+                                    <input type="text" name="last_name" value="{{ current_user.last_name }}"
+                                        class="form-control" required>
+                                </div>
+                            </div>
 
-            <textarea name="bio" rows="4" placeholder="Your bio..."
-                      class="w-full border p-2 rounded">{{ current_user.bio }}</textarea>
+                            <div class="form-group">
+                                <label class="form-label">College/University</label>
+                                <input type="text" name="college" value="{{ current_user.college }}"
+                                    class="form-control">
+                            </div>
 
-            <button type="submit"
-                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                💾 Save Profile
-            </button>
-        </form>
+                            <div class="form-group">
+                                <label class="form-label">Skills</label>
+                                <div class="skills-container">
+                                    <template x-for="(skill, index) in skills" :key="index">
+                                        <span class="skill-tag">
+                                            <span x-text="skill"></span>
+                                            <button type="button" @click="removeSkill(index)">×</button>
+                                        </span>
+                                    </template>
+                                    <input type="text" x-ref="skillInput" 
+                                        @keydown.enter.prevent="addSkill($event.target.value)"
+                                        placeholder="Type a skill and press Enter" 
+                                        class="skill-input">
+                                    <input type="hidden" name="skills" x-bind:value="skills.join(',')">
+                                </div>
+                            </div>
 
-        <!-- Projects Section -->
-        <div class="mt-10">
-            <h2 class="text-2xl font-semibold mb-4">🚀 My Projects</h2>
-            {% if current_user.projects %}
-                <ul class="space-y-4">
-                    {% for project in current_user.projects %}
-                        <li class="bg-white p-4 rounded shadow">
-                            <h3 class="text-xl font-bold">{{ project.title }}</h3>
-                            <p class="text-gray-600">{{ project.description }}</p>
-                            <span class="text-sm text-gray-500">{{ project.visibility|capitalize }}</span>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p class="text-gray-500">No projects yet.</p>
-            {% endif %}
-        </div>
-    </div>
-</body>
-</html>
+                            <div class="form-group">
+                                <label class="form-label">Bio</label>
+                                <textarea name="bio" rows="4" 
+                                    class="form-control">{{ current_user.bio }}</textarea>
+                            </div>
+
+                            <div class="flex justify-end space-x-2">
+                                <button type="button" @click="isEditing = false"
+                                    class="btn btn-secondary">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h1a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h1v5.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L9 11.586V

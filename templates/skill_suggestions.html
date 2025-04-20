@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">Skill Suggestions</h2>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">People with Similar Skills</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted mb-3">
+                        These students have similar skills to yours. Great for study groups or collaborative learning!
+                    </p>
+                    
+                    {% if similar_users %}
+                        <div class="list-group">
+                            {% for user, score in similar_users %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">{{ user.first_name }} {{ user.last_name }}</h6>
+                                            <p class="text-muted mb-0">{{ user.college }}</p>
+                                            <small class="text-muted">Skills: {{ user.skills }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-primary rounded-pill">{{ (score * 100)|int }}% match</span>
+                                            <a href="{{ url_for('conversation', user_id=user.id) }}" class="btn btn-sm btn-outline-primary mt-2">Message</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-center">No similar users found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">People with Complementary Skills</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted mb-3">
+                        These students have skills you might want to learn. Great for project teams or mentorship!
+                    </p>
+                    
+                    {% if complementary_users %}
+                        <div class="list-group">
+                            {% for user, score in complementary_users %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">{{ user.first_name }} {{ user.last_name }}</h6>
+                                            <p class="text-muted mb-0">{{ user.college }}</p>
+                                            <small class="text-muted">Skills: {{ user.skills }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-success rounded-pill">{{ (score * 100)|int }}% complementary</span>
+                                            <a href="{{ url_for('conversation', user_id=user.id) }}" class="btn btn-sm btn-outline-success mt-2">Message</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-center">No complementary users found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">Find Students by Specific Skill</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted mb-3">
+                        Looking for someone with a specific skill? Search here!
+                    </p>
+                    
+                    <form action="{{ url_for('find_by_skill') }}" method="POST" class="row g-3">
+                        <div class="col-md-8">
+                            <input type="text" name="skill" class="form-control" placeholder="Enter skill (e.g., Python, Data Analysis, UI Design)" required>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-info w-100">Search</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

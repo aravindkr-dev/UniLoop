@@ -51,6 +51,13 @@
                     Edit Project
                 </a>
 
+                <!-- Add this to your project details template -->
+                <div class="mt-3">
+                    <a href="{{ url_for('project_code_rooms', project_id=project.id) }}" class="btn btn-primary">
+                        Code Rooms
+                    </a>
+                </div>
+
             </div>
             {% endfor %}
         </div>

@@ -1,0 +1,35 @@
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4 class="card-title mb-0">Find Students by Skill</h4>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted mb-4">
+                        Enter a skill to find students who have it. Great for finding project teammates or study partners!
+                    </p>
+                    
+                    <form method="POST" class="mb-4">
+                        <div class="mb-3">
+                            <label for="skill" class="form-label">Skill:</label>
+                            <input type="text" id="skill" name="skill" class="form-control form-control-lg" 
+                                   placeholder="E.g., Python, Data Analysis, UI Design" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-info">Find Students</button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('skill_suggestions') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Skill Suggestions
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
