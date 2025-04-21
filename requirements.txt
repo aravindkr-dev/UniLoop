@@ -11,3 +11,5 @@ humanize==4.9.0
 python-dotenv==1.0.1
 gunicorn==21.2.0
 eventlet==0.33.3
+PyMySQL==1.1.0
+python-dotenv==1.0.1

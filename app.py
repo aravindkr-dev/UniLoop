@@ -2,7 +2,7 @@ import uuid
 from flask import Flask, abort, jsonify, render_template, redirect, url_for, request, flash
 from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import insert
+from sqlalchemy import URL, insert
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from datetime import datetime
@@ -19,15 +19,19 @@ import uuid
 from flask_wtf.csrf import CSRFProtect
 import humanize
 from datetime import datetime
+import pymysql
+
+
+pymysql.install_as_MySQLdb()
 
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///collegehub.db'
+app.config['SECRET_KEY'] = 'hs7054%$^&gasdguy#$*&809hjsa7&*&*'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)  
+migrate = Migrate(app, db)
 bcrypt = Bcrypt(app)
 csrf = CSRFProtect(app)
 # Update this line in your app configuration
@@ -35,8 +39,6 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
 login_manager.login_message_category = 'info'
-
-
 
 
 # Make sure you have CORS properly set up if needed
@@ -50,7 +52,7 @@ active_users = {}
 
 # Association table
 project_participants = db.Table('project_participants',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('user_id', db.Integer,db.ForeignKey('user.id') , primary_Key = True),
     db.Column('project_id', db.Integer, db.ForeignKey('project.id'))
 )
 
