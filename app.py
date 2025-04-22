@@ -20,14 +20,35 @@ from flask_wtf.csrf import CSRFProtect
 import humanize
 from datetime import datetime
 import pymysql
-
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask_login import current_user, login_required, logout_user
+from werkzeug.security import check_password_hash
+from datetime import datetime
 
 pymysql.install_as_MySQLdb()
 
 
+
+db_config = {
+    'drivername': 'mysql+pymysql',
+    'username': 'avnadmin',
+    'password': 'AVNS_3ucGEVTq7IRq-jblhta',
+    'host': 'mysql-13b2a9d0-s87999702-cb60.j.aivencloud.com',
+    'port': 12345,
+    'database': 'defaultdb',
+    'query': {
+        'ssl': {
+            'check_hostname': False,      # Disables hostname checking
+            'verify_mode': 0             # Disables certificate validation
+        }
+    }
+}
+
+
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'hs7054%$^&gasdguy#$*&809hjsa7&*&*'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://avnadmin:AVNS_3ucGEVTq7IRq-jblhta@mysql-13b2a9d0-s87999702-cb60.j.aivencloud.com:17666/defaultdb?ssl_disabled=true'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -86,6 +107,7 @@ class User(UserMixin, db.Model):
                                      viewonly=True)
 
     skills = db.Column(db.Text)
+    #is_active = db.Column(db.Boolean, default=True)
     
     # Helper method to get skills as a list
     def get_skills_list(self):
@@ -1199,7 +1221,7 @@ def get_skill_complementarity(user1, user2):
 @app.route('/skill_suggestions')
 @login_required
 def skill_suggestions():
-    # Get all users except current user
+    """# Get all users except current user
     users = User.query.filter(User.id != current_user.id).all()
     
     # Skip users with no skills
@@ -1230,13 +1252,14 @@ def skill_suggestions():
         'skill_suggestions.html',
         similar_users=top_similar,
         complementary_users=top_complementary
-    )
+    )"""
+    return url_for(dashboard)
 
 # Add this route to find people with a specific skill
 @app.route('/find_by_skill', methods=['GET', 'POST'])
 @login_required
 def find_by_skill():
-    if request.method == 'POST':
+    """if request.method == 'POST':
         skill = request.form.get('skill').strip().lower()
         if not skill:
             flash("Please enter a skill to search for.", "warning")
@@ -1256,7 +1279,8 @@ def find_by_skill():
             skill=skill
         )
     
-    return render_template('find_by_skill.html')
+    return render_template('find_by_skill.html')"""
+    return url_for(dashboard)
 
 # Add this route to suggest project teammates based on required skills
 @app.route('/project/<int:project_id>/suggest_teammates')

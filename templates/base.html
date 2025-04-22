@@ -8,20 +8,98 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700&display=swap">
     <!-- Custom CSS -->
-     <!-- Add these to your base template or specific code room template -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
     <style>
+        :root {
+            --primary-color: #4338CA;
+            --secondary-color: #64748B;
+            --accent-color: #3B82F6;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --danger-color: #EF4444;
+            --light-bg: #F1F5F9;
+            --card-bg: #FFFFFF;
+            --dark-text: #1E293B;
+            --medium-text: #475569;
+            --light-text: #F9FAFB;
+            --muted-text: #94A3B8;
+            --border-color: #E2E8F0;
+            --hover-bg: #EEF2FF;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --transition: all 0.2s ease;
+            --radius-sm: 0.375rem;
+            --radius: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-full: 9999px;
+        }
+
         body {
-            background-color: #f8f9fa;
+            background-color: var(--light-bg);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--dark-text);
+            letter-spacing: -0.01em;
         }
+
         .navbar-brand {
-            font-weight: bold;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.02em;
+            color: var(--light-text) !important;
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            margin-right: 16px;
+            background: linear-gradient(135deg, #4338CA, #3B82F6);
+            transition: var(--transition);
         }
+        
+        .navbar-brand:hover {
+            background: linear-gradient(135deg, #3730A3, #2563EB);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
         .nav-link {
             font-weight: 500;
+            transition: var(--transition);
+            color: var(--light-text) !important;
+            opacity: 0.85;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            font-size: 0.95rem;
         }
+
+        .nav-link:hover:not(.disabled-feature) {
+            opacity: 1;
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .bg-primary {
+            background: linear-gradient(to right, #4338CA, #3B82F6) !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4338CA, #3B82F6);
+            border: none;
+            box-shadow: var(--shadow-sm);
+            border-radius: var(--radius-full);
+            padding: 0.5rem 1.25rem;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #3730A3, #2563EB);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
         .sidebar {
             position: fixed;
             top: 56px;
@@ -29,46 +107,342 @@
             left: 0;
             z-index: 100;
             padding: 48px 0 0;
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-            background-color: #fff;
+            box-shadow: var(--shadow-md);
+            background-color: var(--card-bg);
+            transition: var(--transition);
+            border-right: 1px solid var(--border-color);
         }
+
         .sidebar-sticky {
             position: relative;
             top: 0;
             height: calc(100vh - 48px);
-            padding-top: .5rem;
+            padding-top: 1rem;
             overflow-x: hidden;
             overflow-y: auto;
         }
+
         .sidebar .nav-link {
             font-weight: 500;
-            color: #333;
-            padding: .75rem 1rem;
+            color: var(--medium-text) !important;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0;
+            margin: 2px 0;
+            opacity: 0.9;
+            transition: var(--transition);
+            font-size: 0.9rem;
         }
-        .sidebar .nav-link:hover {
-            color: #007bff;
+
+        .sidebar .nav-link:hover:not(.disabled-feature) {
+            color: var(--primary-color) !important;
+            background-color: var(--hover-bg);
+            opacity: 1;
         }
+
         .sidebar .nav-link.active {
-            color: #007bff;
+            color: var(--primary-color) !important;
+            background-color: var(--hover-bg);
+            font-weight: 600;
+            opacity: 1;
+            border-left: 3px solid var(--primary-color);
         }
-        .sidebar .nav-link .feather {
-            margin-right: 4px;
-        }
+
         main {
-            padding-top: 70px;
+            padding-top: 80px;
         }
+
         .notification-badge {
             position: absolute;
-            top: 0;
-            right: -5px;
+            top: -5px;
+            right: -8px;
             font-size: 0.7rem;
         }
+
+        .badge {
+            background-color: var(--danger-color);
+            border-radius: var(--radius-full);
+            padding: 0.25em 0.6em;
+            font-weight: 500;
+        }
+
+        .dropdown-menu {
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 0;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dropdown-item {
+            padding: 0.625rem 1.5rem;
+            color: var(--medium-text);
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--hover-bg);
+            color: var(--primary-color);
+        }
+
+        .dropdown-item:active {
+            background-color: var(--primary-color);
+            color: var(--light-text);
+        }
+
+        .btn-light {
+            background-color: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: var(--light-text);
+            transition: var(--transition);
+            border-radius: var(--radius-full);
+        }
+
+        .btn-light:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+            color: var(--light-text);
+        }
+
+        .alert {
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            border: none;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Tooltip for disabled feature */
+        .disabled-feature {
+            color: var(--muted-text) !important;
+            cursor: not-allowed;
+            position: relative;
+            opacity: 0.7 !important;
+        }
+
+        .disabled-feature:after {
+            content: "This feature will be available in the full version. Stay tuned!";
+            position: absolute;
+            background-color: var(--dark-text);
+            color: white;
+            padding: 10px 15px;
+            border-radius: var(--radius);
+            font-size: 0.85rem;
+            width: 250px;
+            top: 50%;
+            left: 100%;
+            transform: translateY(-50%);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: var(--shadow-md);
+        }
+
+        .disabled-feature:hover:after {
+            opacity: 1;
+        }
+
+        /* For mobile */
+        .navbar .disabled-feature:after {
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+        }
+
+        .navbar .disabled-feature:hover:after {
+            transform: translateX(-50%) translateY(5px);
+        }
+
+        /* Beta feature indicator - replaces PRO */
+        .beta-indicator {
+            font-size: 0.65rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            color: white;
+            padding: 2px 6px;
+            border-radius: var(--radius-full);
+            margin-left: 8px;
+            vertical-align: middle;
+            letter-spacing: 0.5px;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+        
+        .disabled-feature:hover .beta-indicator {
+            background: linear-gradient(135deg, #4F46E5, #7C3AED);
+        }
+
+        /* Card styling */
+        .card {
+            border-radius: var(--radius-lg);
+            border: none;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            overflow: hidden;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .card-title {
+            font-weight: 600;
+            color: var(--light-text);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Custom button */
+        .btn-custom {
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.25rem;
+            border-radius: var(--radius-full);
+            font-weight: 500;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-custom:hover {
+            background: linear-gradient(135deg, #4F46E5, #7C3AED);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+            color: white;
+        }
+
+        /* Create smoother edges for navbar */
+        .navbar {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+        }
+
+        /* Icon styling */
+        .nav-link i, .dropdown-item i {
+            opacity: 0.9;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover i, .dropdown-item:hover i {
+            opacity: 1;
+        }
+
+        /* Content cards */
+        .content-card {
+            border-radius: var(--radius-lg);
+            background-color: var(--card-bg);
+            box-shadow: var(--shadow-md);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .content-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        /* Sidebar Beta Card */
+        .beta-card {
+            overflow: hidden;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            position: relative;
+            z-index: 1;
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            transition: var(--transition);
+        }
+        
+        .beta-card:hover {
+            background: linear-gradient(135deg, #4F46E5, #7C3AED);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .beta-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='rgba(255,255,255,.07)' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        .beta-card-body {
+            padding: 1.5rem;
+        }
+        
+        /* Beta label */
+        .beta-version-label {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Interactive hover effects */
+        .nav-link, .dropdown-item, .btn, .card, .beta-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-link::after, .dropdown-item::after, .btn::after, .beta-card::after {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0);
+            pointer-events: none;
+            transition: background-color 0.3s ease;
+            z-index: -1;
+        }
+        
+        .nav-link:hover::after, .dropdown-item:hover::after {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        .btn:hover::after {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Focus style */
+        .nav-link:focus, .btn:focus, .dropdown-item:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3);
+        }
+
         @media (min-width: 768px) {
             main {
-                padding-left: 240px;
+                padding-left: 260px;
             }
             .sidebar {
-                width: 240px;
+                width: 260px;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .sidebar {
+                top: 0;
+                padding-top: 70px;
+                width: 100%;
+                height: 100%;
+                transform: translateX(-100%);
             }
         }
     </style>
@@ -77,45 +451,54 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('dashboard') }}">UniLoop</a>
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+                UniLoop
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">
+                            <i class="fas fa-home me-1"></i> Dashboard
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('my_projects') }}">Projects</a>
+                        <a class="nav-link" href="{{ url_for('my_projects') }}">
+                            <i class="fas fa-project-diagram me-1"></i> Projects
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('friends') }}">Friends</a>
+                        <a class="nav-link" href="{{ url_for('friends') }}">
+                            <i class="fas fa-users me-1"></i> Friends
+                        </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link position-relative" href="{{ url_for('messages') }}">
-                            <i class="fas fa-envelope"></i> Messages
-                            <span id="unread-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+                            <i class="fas fa-envelope me-1"></i> Messages
+                            <span id="unread-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill d-none">
                                 <span class="visually-hidden">Unread messages</span>
                             </span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('skill_suggestions') }}">
-                            <i class="fas fa-users-cog"></i> Skill Suggestions
+                        <a class="nav-link disabled-feature" href="#" onclick="return false;">
+                            <i class="fas fa-users-cog me-1"></i> Skill Suggestions
+                            <span class="beta-indicator">SOON</span>
                         </a>
                     </li>
                 </ul>
                 <div class="d-flex">
                     <div class="dropdown">
                         <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                            {{ current_user.first_name }} {{ current_user.last_name }}
+                            <i class="fas fa-user-circle me-1"></i> {{ current_user.first_name }} {{ current_user.last_name }}
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
-                            <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('edit_profile') }}">Settings</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="fas fa-user me-2"></i> Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('edit_profile') }}"><i class="fas fa-cog me-2"></i> Settings</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
                         </ul>
                     </div>
                 </div>
@@ -150,7 +533,7 @@
                 <li class="nav-item">
                     <a class="nav-link position-relative" href="{{ url_for('messages') }}">
                         <i class="fas fa-envelope me-2"></i>Messages
-                        <span id="sidebar-unread-badge" class="position-absolute top-50 end-0 translate-middle-y badge rounded-pill bg-danger me-2 d-none">
+                        <span id="sidebar-unread-badge" class="position-absolute top-50 end-0 translate-middle-y badge rounded-pill me-2 d-none">
                             <span class="visually-hidden">Unread messages</span>
                         </span>
                     </a>
@@ -166,17 +549,31 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('skill_suggestions') }}">
+                    <a class="nav-link disabled-feature" href="#" onclick="return false;">
                         <i class="fas fa-users-cog me-2"></i>Skill Suggestions
+                        <span class="beta-indicator">SOON</span>
                     </a>
                 </li>
             </ul>
+            
+            <div class="mt-4 mx-3">
+                <div class="card beta-card">
+                    <div class="beta-version-label">BETA</div>
+                    <div class="beta-card-body">
+                        <h6 class="card-title d-flex align-items-center">
+                            <i class="fas fa-sparkles me-2"></i>Coming Soon
+                        </h6>
+                        <p class="card-text small text-white opacity-90">Additional features including AI Skill Suggestions will be available in the full version!</p>
+                        <a href="#" class="btn-custom btn-sm w-100">Join Waitlist</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Main Content -->
     <main role="main">
-        <div class="container-fluid">
+        <div class="container-fluid px-4">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
@@ -199,13 +596,56 @@
         // Add active class to current navigation item
         document.addEventListener('DOMContentLoaded', function() {
             const currentLocation = window.location.pathname;
-            const navLinks = document.querySelectorAll('.nav-link');
+            const navLinks = document.querySelectorAll('.nav-link:not(.disabled-feature)');
             
             navLinks.forEach(link => {
                 if (link.getAttribute('href') === currentLocation) {
                     link.classList.add('active');
                 }
             });
+            
+            // Block navigation to upcoming features
+            document.querySelectorAll('.disabled-feature').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    return false;
+                });
+            });
+            
+            // Add subtle hover effect to all cards
+            document.querySelectorAll('.card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-3px)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+            
+            // Add hover effect to nav items
+            document.querySelectorAll('.sidebar .nav-link:not(.active)').forEach(link => {
+                link.addEventListener('mouseenter', function() {
+                    this.style.paddingLeft = '1.75rem';
+                });
+                link.addEventListener('mouseleave', function() {
+                    this.style.paddingLeft = '1.5rem';
+                });
+            });
+            
+            // Beta version indicator
+            const betaTag = document.createElement('div');
+            betaTag.className = 'position-fixed badge rounded-pill';
+            betaTag.style.backgroundColor = 'rgba(99, 102, 241, 0.9)';
+            betaTag.style.color = 'white';
+            betaTag.style.bottom = '15px';
+            betaTag.style.right = '15px';
+            betaTag.style.padding = '5px 10px';
+            betaTag.style.fontWeight = '600';
+            betaTag.style.fontSize = '0.75rem';
+            betaTag.style.boxShadow = 'var(--shadow-md)';
+            betaTag.style.zIndex = '1000';
+            betaTag.textContent = 'BETA VERSION';
+            document.body.appendChild(betaTag);
         });
 
         // Check for unread messages periodically

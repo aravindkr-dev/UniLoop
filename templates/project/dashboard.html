@@ -1,85 +1,127 @@
+
+
+<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <title>My Projects</title> <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"> <script src="https://cdn.tailwindcss.com"></script> </head> <body class="bg
+
+pasted
+
+in this page i need an back to dashboard button and improve the ui ux it looks like a crap
+
+I'll help you enhance the UI/UX of your projects page and add a "Back to Dashboard" button. Here's an improved version with better aesthetics and usability:
+
+
+Improved Projects Page UI/UX
+Interactive artifact 
+The key improvements I've made to your project page include:
+
+Added a Back to Dashboard button at the top of the page with an arrow icon for easy navigation.
+Enhanced overall design and layout:
+More modern card design with subtle shadows and hover effects
+Better spacing and padding throughout the page
+Improved typography with better font sizing and weights
+Organized layout with clear sections (header, body, footer)
+Improved project cards:
+Cleaner separation between different types of information
+Better visibility status indication with a colored badge
+Fixed the text truncation with proper ellipsi
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Projects</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100">
-    <div class="container mx-auto px-4 py-6">
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Back to Dashboard Button -->
+        <div class="mb-6">
+            <a href="{{ url_for('dashboard') }}" class="inline-flex items-center px-4 py-2 rounded-lg text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 transition shadow-sm">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+            </a>
+        </div>
 
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold text-gray-800">📁 My Projects</h1>
-            <a href="{{ url_for('create_project') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                ➕ Create New Project
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">My Projects</h1>
+                <p class="text-gray-600 mt-1">Manage and organize all your development projects</p>
+            </div>
+            <a href="{{ url_for('create_project') }}" class="inline-flex items-center px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition shadow-md">
+                <i class="fas fa-plus mr-2"></i> Create New Project
             </a>
         </div>
 
         {% if projects %}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Projects Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for project in projects %}
-            <div class="bg-white shadow rounded-xl p-5 mb-6">
-                <div class="flex justify-between items-start">
-                    <h2 class="text-xl font-bold">
-                        <a href="{{ url_for('project_page', project_id=project.id) }}" class="text-blue-600 hover:text-blue-800">
-                            {{ project.title }}
+            <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition border border-gray-100 overflow-hidden">
+                <!-- Project Header -->
+                <div class="p-5 border-b border-gray-100">
+                    <div class="flex justify-between items-start">
+                        <h2 class="text-xl font-semibold text-gray-800">
+                            <a href="{{ url_for('project_page', project_id=project.id) }}" class="hover:text-blue-600 transition">
+                                {{ project.title }}
+                            </a>
+                        </h2>
+                        <span class="px-2 py-1 bg-blue-50 text-blue-600 text-xs font-medium rounded-full">{{ project.visibility|capitalize }}</span>
+                    </div>
+
+                    <p class="text-gray-600 mt-3 text-sm line-clamp-2">{{ project.description[:150] }}{% if project.description|length > 150 %}...{% endif %}</p>
+                </div>
+                
+                <!-- Project Body -->
+                <div class="px-5 py-4">
+                    <!-- Team Members -->
+                    <div class="mb-4">
+                        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Team</h3>
+                        <div class="flex -space-x-2 overflow-hidden">
+                            {% for member in project.team_members[:5] %}
+                                <img class="inline-block h-8 w-8 rounded-full ring-2 ring-white" 
+                                     src="{{ member.profile_pic or '/api/placeholder/40/40' }}" 
+                                     alt="{{ member.first_name }}">
+                            {% endfor %}
+                            
+                            {% if project.team_members|length > 5 %}
+                                <span class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-xs font-medium text-gray-500 ring-2 ring-white">
+                                    +{{ project.team_members|length - 5 }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Project Links -->
+                    <div class="flex flex-wrap gap-3 mb-4">
+                        {% if project.github_url %}
+                        <a href="{{ project.github_url }}" target="_blank" class="inline-flex items-center px-3 py-1 rounded-md text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
+                            <i class="fab fa-github mr-2"></i> GitHub
                         </a>
-                    </h2>
-                    <span class="text-xs text-gray-500">{{ project.visibility|capitalize }}</span>
-                </div>
-
-                <p class="text-gray-600 text-sm mt-2">{{ project.description[:100] }}...</p>
-
-                <div class="text-sm text-gray-500 mt-2">
-                    Created: {{ project.created_at.strftime('%b %d, %Y') }}
-                </div>
-                
-                <div class="project-links mt-3 flex space-x-3">
-                    {% if project.github_url %}
-                    <a href="{{ project.github_url }}" target="_blank" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800">
-                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385c.6.105.825-.255.825-.57c0-.285-.015-1.23-.015-2.235c-3.015.555-3.795-.735-4.035-1.41c-.135-.345-.72-1.41-1.23-1.695c-.42-.225-1.02-.78-.015-.795c.945-.015 1.62.87 1.845 1.23c1.08 1.815 2.805 1.305 3.495.99c.105-.78.42-1.305.765-1.605c-2.67-.3-5.46-1.335-5.46-5.925c0-1.305.465-2.385 1.23-3.225c-.12-.3-.54-1.53.12-3.18c0 0 1.005-.315 3.3 1.23c.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23c.66 1.65.24 2.88.12 3.18c.765.84 1.23 1.905 1.23 3.225c0 4.605-2.805 5.625-5.475 5.925c.435.375.81 1.095.81 2.22c0 1.605-.015 2.895-.015 3.3c0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
-                        </svg>
-                        GitHub
-                    </a>
-                    {% endif %}
-                    
-                    {% if project.demo_url %}
-                    <a href="{{ project.demo_url }}" target="_blank" class="inline-flex items-center text-sm text-green-600 hover:text-green-800">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                        </svg>
-                        Live Demo
-                    </a>
-                    {% endif %}
-                </div>
-                
-                <!-- Team Members Preview -->
-                <div class="mt-4">
-                    <div class="flex -space-x-2 overflow-hidden">
-                        {% for member in project.team_members[:4] %}
-                            <img class="inline-block h-8 w-8 rounded-full ring-2 ring-white" 
-                                 src="{{ member.profile_pic or '/api/placeholder/40/40' }}" 
-                                 alt="{{ member.first_name }}">
-                        {% endfor %}
+                        {% endif %}
                         
-                        {% if project.team_members|length > 4 %}
-                            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-xs font-medium text-gray-500">
-                                +{{ project.team_members|length - 4 }}
-                            </span>
+                        {% if project.demo_url %}
+                        <a href="{{ project.demo_url }}" target="_blank" class="inline-flex items-center px-3 py-1 rounded-md text-sm bg-green-100 text-green-700 hover:bg-green-200 transition">
+                            <i class="fas fa-external-link-alt mr-2"></i> Live Demo
+                        </a>
                         {% endif %}
                     </div>
-                </div>
 
-                <!-- Action buttons -->
-                <div class="mt-4 flex space-x-2">
-                    <a href="{{ url_for('project_page', project_id=project.id) }}" class="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                    <!-- Project Meta -->
+                    <div class="text-xs text-gray-500">
+                        <i class="far fa-calendar-alt mr-1"></i> Created: {{ project.created_at.strftime('%b %d, %Y') }}
+                    </div>
+                </div>
+                
+                <!-- Project Footer -->
+                <div class="px-5 py-4 bg-gray-50 border-t border-gray-100 flex flex-wrap gap-2">
+                    <a href="{{ url_for('project_page', project_id=project.id) }}" class="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition">
                         <i class="fas fa-eye mr-2"></i> View Details
                     </a>
                     
-                    <a href="{{ url_for('edit_project', project_id=project.id) }}" class="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300">
+                    <a href="{{ url_for('edit_project', project_id=project.id) }}" class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 transition">
                         <i class="fas fa-edit mr-2"></i> Edit
                     </a>
                 </div>
@@ -87,9 +129,18 @@
             {% endfor %}
         </div>
         {% else %}
-        <p class="text-gray-500 mt-10 text-center">You haven't created any projects yet.</p>
+        <!-- Empty State -->
+        <div class="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-100">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 text-blue-600 mb-4">
+                <i class="fas fa-folder-open text-2xl"></i>
+            </div>
+            <h2 class="text-xl font-semibold text-gray-800 mb-2">No projects yet</h2>
+            <p class="text-gray-600 max-w-md mx-auto mb-6">Start by creating your first project to track your development work.</p>
+            <a href="{{ url_for('create_project') }}" class="inline-flex items-center px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition shadow-md">
+                <i class="fas fa-plus mr-2"></i> Create New Project
+            </a>
+        </div>
         {% endif %}
-
     </div>
 </body>
 </html>

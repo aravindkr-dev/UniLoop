@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Deletion - DevCollab</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-3xl mx-auto px-4 py-12">
+        <!-- Back Button -->
+        <div class="mb-8">
+            <a href="{{ url_for('settings') }}" class="inline-flex items-center px-4 py-2 rounded-lg text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 transition shadow-sm">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Settings
+            </a>
+        </div>
+
+        <!-- Page Header -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-2xl font-bold text-gray-800">Account Deactivation or Deletion</h1>
+                <p class="text-gray-600 mt-2">Manage your account status or permanently delete your data</p>
+            </div>
+        </div>
+
+        <!-- Deactivation Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 mt-1">
+                        <i class="fas fa-user-clock text-2xl text-yellow-500"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h2 class="text-xl font-semibold text-gray-800">Temporarily Deactivate Account</h2>
+                        <p class="text-gray-600 mt-2">
+                            Deactivating your account will hide your profile from other users. Your projects and contributions will remain but will be hidden from public view. You can reactivate your account at any time by logging in again.
+                        </p>
+                        
+                        <div class="mt-6">
+                            <form action="{{ url_for('deactivate_account') }}" method="POST" id="deactivationForm">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                
+                                <div class="mb-4">
+                                    <label for="deactivateReason" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Why are you deactivating? (Optional)
+                                    </label>
+                                    <select id="deactivateReason" name="reason" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                                        <option value="">Select a reason</option>
+                                        <option value="taking_break">I'm taking a break</option>
+                                        <option value="privacy">Privacy concerns</option>
+                                        <option value="too_many_notifications">Too many notifications</option>
+                                        <option value="not_useful">Not finding the platform useful</option>
+                                        <option value="other">Other reason</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="deactivatePassword" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Confirm your password
+                                    </label>
+                                    <input type="password" id="deactivatePassword" name="password" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                                </div>
+                                
+                                <div class="flex items-start mb-4">
+                                    <div class="flex items-center h-5">
+                                        <input id="deactivateConfirm" name="confirm_deactivation" type="checkbox" required
+                                            class="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="deactivateConfirm" class="font-medium text-gray-700">
+                                            I understand that my account will be temporarily deactivated
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                                    <i class="fas fa-user-clock mr-2"></i> Deactivate My Account
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deletion Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-red-100 mb-8">
+            <div class="p-6 border-b border-red-100">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 mt-1">
+                        <i class="fas fa-exclamation-triangle text-2xl text-red-500"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h2 class="text-xl font-semibold text-gray-800">Permanently Delete Account</h2>
+                        <p class="text-gray-600 mt-2">
+                            This action is irreversible. When you delete your account, all your personal data, profile information, and non-shared content will be permanently removed from our systems.
+                        </p>
+                        
+                        <div class="mt-4 p-4 bg-red-50 rounded-md">
+                            <h3 class="text-sm font-medium text-red-800">Important: Please read before proceeding</h3>
+                            <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+                                <li>Your profile and personal information will be permanently deleted</li>
+                                <li>Projects you own will be transferred to another team member or deleted if you're the only member</li>
+                                <li>Your contributions to other projects will remain, but will be anonymized</li>
+                                <li>This action cannot be undone - you will lose all data associated with your account</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <form action="{{ url_for('delete_account') }}" method="POST" id="deletionForm">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                
+                                <div class="mb-4">
+                                    <label for="deleteReason" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Why are you deleting your account? (Optional)
+                                    </label>
+                                    <select id="deleteReason" name="reason" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                        <option value="">Select a reason</option>
+                                        <option value="privacy_concerns">Privacy concerns</option>
+                                        <option value="data_usage">Concerns about data usage</option>
+                                        <option value="not_useful">Not finding the platform useful</option>
+                                        <option value="created_new_account">Created a new account</option>
+                                        <option value="negative_experience">Negative experience</option>
+                                        <option value="other">Other reason</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="otherReasonText" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Please specify (if other):
+                                    </label>
+                                    <textarea id="otherReasonText" name="other_reason" rows="2" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"></textarea>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="deletePassword" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Confirm your password
+                                    </label>
+                                    <input type="password" id="deletePassword" name="password" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                                </div>
+                                
+                                <!-- Project Transfer Section for project owners -->
+                                <div id="projectTransferSection" class="mb-6 p-4 bg-gray-50 rounded-md">
+                                    <h3 class="text-sm font-medium text-gray-800 mb-2">Project Ownership Transfer</h3>
+                                    <p class="text-xs text-gray-600 mb-4">For projects you own, please select a team member to transfer ownership to, or choose to delete the project.</p>
+                                    
+                                    {% if current_user.owned_projects %}
+                                        {% for project in current_user.owned_projects %}
+                                        <div class="mb-4 p-3 bg-white rounded border border-gray-200">
+                                            <h4 class="text-sm font-medium text-gray-800">{{ project.title }}</h4>
+                                            
+                                            <div class="mt-2">
+                                                <label class="block text-xs font-medium text-gray-700 mb-1">
+                                                    Action for this project:
+                                                </label>
+                                                
+                                                <div class="mt-1">
+                                                    <div class="flex items-center mb-2">
+                                                        <input type="radio" id="delete_{{ project.id }}" name="project_{{ project.id }}" value="delete" 
+                                                            class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300">
+                                                        <label for="delete_{{ project.id }}" class="ml-2 text-sm text-gray-700">Delete this project</label>
+                                                    </div>
+                                                    
+                                                    {% if project.team_members|length > 1 %}
+                                                        <div class="flex items-center">
+                                                            <input type="radio" id="transfer_{{ project.id }}" name="project_{{ project.id }}" value="transfer" checked
+                                                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                                                            <label for="transfer_{{ project.id }}" class="ml-2 text-sm text-gray-700">Transfer ownership to:</label>
+                                                        </div>
+                                                        
+                                                        <div class="ml-6 mt-2">
+                                                            <select name="transfer_to_{{ project.id }}" class="w-full text-sm px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                                                {% for member in project.team_members %}
+                                                                    {% if member.user_id != current_user.id %}
+                                                                    <option value="{{ member.user_id }}">{{ member.user.first_name }} {{ member.user.last_name }}</option>
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                    {% else %}
+                                                        <p class="text-xs text-gray-500 italic">You are the only member of this project. It will be deleted.</p>
+                                                        <input type="hidden" name="project_{{ project.id }}" value="delete">
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-sm text-gray-500 italic">You don't own any projects.</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex items-start mb-4">
+                                    <div class="flex items-center h-5">
+                                        <input id="deleteConfirm" name="confirm_deletion" type="checkbox" required
+                                            class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="deleteConfirm" class="font-medium text-gray-700">
+                                            I understand this action is permanent and cannot be undone
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start mb-6">
+                                    <div class="flex items-center h-5">
+                                        <input id="deleteConfirm2" name="confirm_deletion_final" type="checkbox" required
+                                            class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded">
+                                    </div>
+                                    <div class="ml-3 text-sm">
+                                        <label for="deleteConfirm2" class="font-medium text-gray-700">
+                                            I want to permanently delete my account and all associated data
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                    <i class="fas fa-trash-alt mr-2"></i> Permanently Delete My Account
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Show "other reason" text field only when "other" is selected
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteReasonSelect = document.getElementById('deleteReason');
+            const otherReasonText = document.getElementById('otherReasonText');
+            
+            function toggleOtherReasonField() {
+                if (deleteReasonSelect.value === 'other') {
+                    otherReasonText.parentElement.style.display = 'block';
+                } else {
+                    otherReasonText.parentElement.style.display = 'none';
+                }
+            }
+            
+            toggleOtherReasonField(); // Initial state
+            deleteReasonSelect.addEventListener('change', toggleOtherReasonField);
+        });
+    </script>
+</body>
+</html>

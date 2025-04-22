@@ -418,17 +418,6 @@
                         </div>
                     </div>
                     
-                    {% if friend.skills %}
-                    <div class="skills-container">
-                        {% for skill in friend.skills[:3] %}
-                        <span class="skill-badge">{{ skill }}</span>
-                        {% endfor %}
-                        {% if friend.skills|length > 3 %}
-                        <span class="skill-badge">+{{ friend.skills|length - 3 }}</span>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                    
                     {% if friend.mutual_friends %}
                     <div>
                         {% for mutual in friend.mutual_friends[:2] %}
